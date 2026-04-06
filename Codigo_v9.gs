@@ -1221,13 +1221,22 @@ function htmlAnual(d, verif) {
 //  REGISTRO NA PLANILHA
 // ═══════════════════════════════════════════════════════════
 function registrar(tipo, dados, url) {
+  // LockService: evita conflito quando múltiplos professores enviam simultaneamente
+  const lock = LockService.getScriptLock();
+  let lockObtido = false;
   try {
     // Validação de entrada
     if (!tipo || !dados || typeof dados !== 'object') {
       log('ERRO', 'registrar', 'Tipo ou dados inválidos');
       return;
     }
-    
+
+    lockObtido = lock.tryLock(10000); // espera até 10 segundos
+    if (!lockObtido) {
+      log('AVISO', 'registrar', `Timeout ao aguardar lock para ${tipo} - ${dados.professor}`);
+      return;
+    }
+
     const ss  = abrirPlanilha();
     let aba   = ss.getSheetByName(tipo);
     const ago = ts('dd/MM/yyyy HH:mm');
@@ -1239,13 +1248,13 @@ function registrar(tipo, dados, url) {
         [ABA.SEMANAL]:    ["Data/Hora","Professor(a)","Turmas","Componente","Mês","Semana Início","Semana Fim","Link PDF"],
         [ABA.ANUAL]:      ["Data/Hora","Professor(a)","Ano/Turma","Componente","Link PDF"],
       };
-      
+
       const header = hdrs[tipo];
       if (!header) {
         log('ERRO', 'registrar', `Tipo de aba desconhecido: ${tipo}`);
         return;
       }
-      
+
       aba.appendRow(header);
       aba.getRange(1, 1, 1, header.length).setFontWeight("bold").setBackground("#1a3a6b").setFontColor("white");
     }
@@ -1254,7 +1263,7 @@ function registrar(tipo, dados, url) {
     const prof = String(dados.professor || '').trim();
     const comp = String(dados.componente || '').trim();
     const urlFinal = String(url || '').trim();
-    
+
     if (tipo === ABA.TRIMESTRAL) {
       const anoTurma = String(dados.anoTurma || '').trim();
       const trim = String(dados.trimestre || '').replace('º', '') + 'º';
@@ -1272,11 +1281,13 @@ function registrar(tipo, dados, url) {
 
     // Invalida cache do painel após novo registro
     _invalidarCachePainel();
-    
+
     log('INFO', 'registrar', `Registro salvo na aba ${tipo} - ${prof}`);
   } catch(e) {
     log('ERRO', 'registrar', `Falha ao registrar na aba ${tipo}: ${e.message}`);
     // Não lança exceção para não impedir salvamento do PDF
+  } finally {
+    if (lockObtido) lock.releaseLock();
   }
 }
 
@@ -1284,6 +1295,9 @@ function registrar(tipo, dados, url) {
 //  [MELHORIA] LOG ESTRUTURADO NA PLANILHA
 // ═══════════════════════════════════════════════════════════
 function log(nivel, funcao, mensagem, usuario) {
+  // LockService: evita sobreposição de linhas no log sob carga concorrente
+  const lock = LockService.getScriptLock();
+  let lockObtido = false;
   try {
     const ss  = abrirPlanilha();
     let aba   = ss.getSheetByName(ABA.LOGS);
@@ -1293,6 +1307,7 @@ function log(nivel, funcao, mensagem, usuario) {
       aba.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#2c3e50").setFontColor("white");
       aba.setFrozenRows(1);
     }
+    lockObtido = lock.tryLock(5000); // espera até 5 segundos
     const cores = { 'ERRO': '#c0392b', 'AVISO': '#d97706', 'INFO': '#2d7a4f' };
     const linha = aba.getLastRow() + 1;
     aba.appendRow([ts('dd/MM/yyyy HH:mm:ss'), nivel, funcao, mensagem, usuario || '']);
@@ -1303,6 +1318,8 @@ function log(nivel, funcao, mensagem, usuario) {
     Logger.log(`[${nivel}] ${funcao}: ${mensagem}`);
   } catch(e) {
     Logger.log(`[LOG FAIL] ${e.message}`);
+  } finally {
+    if (lockObtido) lock.releaseLock();
   }
 }
 
