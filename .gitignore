@@ -1,0 +1,11 @@
+# Windows Zone.Identifier files
+*:Zone.Identifier
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db

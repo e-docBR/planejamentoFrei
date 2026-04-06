@@ -1,0 +1,3783 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planejamento Escolar – Colégio Itabatan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   TOKENS DE DESIGN — TEMA CLARO / ESCURO
+═══════════════════════════════════════════════════════ */
+:root {
+  --azul:       #1a3a6b;
+  --azul-m:     #2c5282;
+  --azul-l:     #ebf0fa;
+  --dourado:    #c9a84c;
+  --dourado-s:  #a07828;
+  --verde:      #2d7a4f;
+  --verde-l:    #f0fdf4;
+  --verde-b:    #a7f3d0;
+  --vermelho:   #c0392b;
+  --laranja:    #d97706;
+  --branco:     #ffffff;
+  --bg:         #f4f6fb;
+  --card:       #ffffff;
+  --borda:      #e2e8f0;
+  --texto:      #1e293b;
+  --texto-s:    #64748b;
+  --radius:     10px;
+  --shadow:     0 4px 24px rgba(26,58,107,.12);
+  --t:          .22s ease;
+}
+[data-tema="escuro"] {
+  --azul:       #4a7fc1;
+  --azul-m:     #5a8fd1;
+  --azul-l:     #1a2a40;
+  --dourado:    #d4a853;
+  --verde:      #3a9e65;
+  --verde-l:    #0d2018;
+  --verde-b:    #1a5035;
+  --branco:     #1e2736;
+  --bg:         #111827;
+  --card:       #1e2736;
+  --borda:      #2d3748;
+  --texto:      #e2e8f0;
+  --texto-s:    #94a3b8;
+  --shadow:     0 4px 24px rgba(0,0,0,.4);
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--texto);
+  min-height: 100vh;
+  transition: background var(--t), color var(--t);
+}
+
+/* ═══════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════ */
+header {
+  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-m) 100%);
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 2px 16px rgba(0,0,0,.25);
+}
+.header-inner {
+  max-width: 1180px; margin: 0 auto;
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 16px;
+}
+.escola-nome h1 {
+  font-family: 'Merriweather', serif;
+  font-size: .97rem; font-weight: 700;
+  color: #fff; line-height: 1.3; flex: 1;
+}
+.escola-nome p { font-size: .73rem; color: rgba(255,255,255,.65); margin-top: 1px; }
+.header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.badge-ano {
+  background: var(--dourado); color: var(--azul);
+  font-weight: 700; font-size: .82rem;
+  padding: 4px 13px; border-radius: 20px; letter-spacing: .03em;
+}
+
+/* Botão modo escuro */
+.btn-tema {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff; font-size: 1.1rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: var(--t);
+}
+.btn-tema:hover { background: rgba(255,255,255,.25); }
+
+/* Botão imprimir */
+.btn-imprimir-header {
+  height: 36px; padding: 0 14px; border-radius: 8px;
+  border: 2px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #fff; font-size: .82rem; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+  transition: var(--t); white-space: nowrap;
+}
+.btn-imprimir-header:hover { background: rgba(255,255,255,.25); }
+
+/* ═══════════════════════════════════════════════════════
+   NAVEGAÇÃO
+═══════════════════════════════════════════════════════ */
+nav {
+  background: var(--card);
+  border-bottom: 2px solid var(--borda);
+  transition: background var(--t);
+}
+.nav-inner { max-width: 1180px; margin: 0 auto; display: flex; overflow-x: auto; }
+.nav-btn {
+  padding: 13px 22px; border: none;
+  background: transparent; cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .9rem; font-weight: 600;
+  color: var(--texto-s);
+  border-bottom: 3px solid transparent;
+  transition: var(--t);
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+}
+.nav-btn:hover { color: var(--azul); background: var(--azul-l); }
+.nav-btn.ativo { color: var(--azul); border-bottom-color: var(--dourado); background: var(--azul-l); }
+
+/* ═══════════════════════════════════════════════════════
+   BARRA DE PROGRESSO
+═══════════════════════════════════════════════════════ */
+.barra-progresso-wrap {
+  background: var(--card);
+  border-bottom: 1px solid var(--borda);
+  padding: 8px 24px;
+  display: none;
+}
+.barra-progresso-wrap.visivel { display: block; }
+.barra-progresso-inner { max-width: 1180px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+.barra-label { font-size: .8rem; font-weight: 600; color: var(--texto-s); white-space: nowrap; }
+.barra-track {
+  flex: 1; height: 8px; background: var(--borda);
+  border-radius: 99px; overflow: hidden;
+}
+.barra-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--azul), var(--dourado));
+  border-radius: 99px;
+  transition: width .4s ease;
+}
+.barra-pct { font-size: .8rem; font-weight: 700; color: var(--azul); width: 36px; text-align: right; }
+
+/* ═══════════════════════════════════════════════════════
+   LAYOUT PRINCIPAL
+═══════════════════════════════════════════════════════ */
+main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
+
+/* ═══════════════════════════════════════════════════════
+   MENU INICIAL
+═══════════════════════════════════════════════════════ */
+.welcome-text { text-align: center; margin-bottom: 32px; }
+.welcome-text h2 {
+  font-family: 'Merriweather', serif;
+  font-size: 1.45rem; color: var(--azul); margin-bottom: 6px;
+}
+.welcome-text p { color: var(--texto-s); font-size: .97rem; }
+
+.menu-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+.menu-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 32px 28px;
+  cursor: pointer; transition: var(--t); text-align: center;
+  position: relative; overflow: hidden;
+}
+.menu-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--azul), var(--dourado));
+}
+.menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,58,107,.2); }
+.menu-card .card-icon { font-size: 2.6rem; margin-bottom: 14px; }
+.menu-card h2 { font-family: 'Merriweather', serif; font-size: 1.1rem; color: var(--azul); margin-bottom: 8px; }
+.menu-card p { color: var(--texto-s); font-size: .9rem; line-height: 1.6; }
+.btn-card {
+  display: inline-block; margin-top: 18px;
+  background: var(--azul); color: #fff;
+  border: none; padding: 9px 26px; border-radius: 6px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .9rem; font-weight: 600; cursor: pointer; transition: var(--t);
+}
+.btn-card:hover { background: var(--dourado); color: var(--azul); }
+
+/* ═══════════════════════════════════════════════════════
+   FORM CARD
+═══════════════════════════════════════════════════════ */
+.form-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 36px;
+  position: relative; overflow: hidden;
+  transition: background var(--t);
+}
+.form-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg, var(--azul), var(--dourado));
+}
+.form-titulo {
+  font-family: 'Merriweather', serif; font-size: 1.25rem;
+  color: var(--azul); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 10px;
+}
+.form-subtitulo {
+  color: var(--texto-s); font-size: .88rem;
+  margin-bottom: 24px; padding-bottom: 18px;
+  border-bottom: 1px solid var(--borda);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.autosave-badge {
+  font-size: .78rem; font-weight: 600;
+  background: var(--verde-l); color: var(--verde);
+  border: 1px solid var(--verde-b);
+  padding: 3px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 5px;
+}
+.autosave-badge .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--verde); animation: pulsar 2s infinite;
+}
+@keyframes pulsar { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.section-label {
+  font-size: .78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--azul-m);
+  margin: 22px 0 11px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--borda); }
+
+/* ═══════════════════════════════════════════════════════
+   CAMPOS
+═══════════════════════════════════════════════════════ */
+.campo-grid   { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.campo-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.campo-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.campo-full   { grid-column: 1/-1; }
+
+.campo { display: flex; flex-direction: column; gap: 5px; }
+.campo label { font-size: .83rem; font-weight: 600; color: var(--azul); }
+.campo input, .campo select, .campo textarea {
+  border: 1.5px solid var(--borda); border-radius: 7px;
+  padding: 9px 12px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .93rem; color: var(--texto);
+  background: var(--card);
+  transition: var(--t); outline: none;
+}
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  border-color: var(--azul-m); box-shadow: 0 0 0 3px rgba(44,82,130,.12);
+}
+.campo textarea { resize: vertical; min-height: 78px; }
+/* campo select estilizado */
+.campo select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%2364748b'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
+
+/* ═══════════════════════════════════════════════════════
+   TABELA TRIMESTRAL
+═══════════════════════════════════════════════════════ */
+.tabela-planejamento { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--borda); }
+.tabela-planejamento table { width: 100%; border-collapse: collapse; }
+.tabela-planejamento th {
+  background: var(--azul); color: #fff;
+  padding: 10px 12px; font-size: .82rem; font-weight: 600; text-align: left;
+}
+.tabela-planejamento td {
+  padding: 7px; border-bottom: 1px solid var(--borda); border-right: 1px solid var(--borda);
+  vertical-align: top;
+}
+.tabela-planejamento td:last-child { border-right: none; width: 36px; }
+.tabela-planejamento tr:last-child td { border-bottom: none; }
+.tabela-planejamento textarea {
+  width: 100%; border: none; background: transparent;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .87rem; color: var(--texto);
+  resize: vertical; min-height: 68px; outline: none; padding: 2px;
+}
+.tabela-planejamento textarea:focus { background: var(--azul-l); border-radius: 4px; }
+
+.btn-linha {
+  background: none; border: 1.5px dashed var(--borda);
+  width: 100%; padding: 8px; border-radius: 6px;
+  color: var(--texto-s);
+  font-family: 'Source Sans 3', sans-serif; font-size: .87rem;
+  cursor: pointer; margin-top: 8px; transition: var(--t);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-linha:hover { border-color: var(--azul); color: var(--azul); background: var(--azul-l); }
+.btn-remover-linha {
+  background: none; border: none; color: var(--texto-s);
+  cursor: pointer; font-size: .88rem; padding: 3px; border-radius: 4px; transition: var(--t);
+}
+.btn-remover-linha:hover { color: var(--vermelho); background: #fee2e2; }
+
+/* ═══════════════════════════════════════════════════════
+   TABELA SEMANAL
+═══════════════════════════════════════════════════════ */
+.tabela-semanal-wrap { overflow-x: auto; margin-top: 8px; }
+.tabela-semanal { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--borda); min-width: 720px; }
+.tabela-semanal table { width: 100%; border-collapse: collapse; }
+.tabela-semanal th {
+  background: var(--azul); color: #fff;
+  padding: 10px 7px; font-size: .8rem; font-weight: 600; text-align: center;
+}
+.tabela-semanal th.th-campo { background: var(--azul-m); text-align: left; width: 95px; }
+.tabela-semanal td {
+  padding: 5px; border-bottom: 1px solid var(--borda); border-right: 1px solid var(--borda);
+  vertical-align: top;
+}
+.tabela-semanal td:last-child { border-right: none; }
+.tabela-semanal tr:last-child td { border-bottom: none; }
+.tabela-semanal .campo-label {
+  font-size: .77rem; font-weight: 700; color: #fff;
+  padding: 8px 9px; background: var(--azul-m);
+}
+.tabela-semanal textarea {
+  width: 100%; border: none; background: transparent;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .84rem; color: var(--texto);
+  resize: vertical; min-height: 54px; outline: none; padding: 2px;
+}
+.tabela-semanal textarea:focus { background: var(--azul-l); border-radius: 4px; }
+
+.datas-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+.data-dia { display: flex; flex-direction: column; gap: 4px; }
+.data-dia label { font-size: .76rem; font-weight: 600; color: var(--texto-s); text-align: center; }
+.data-dia input { text-align: center; font-size: .83rem; }
+
+/* ═══════════════════════════════════════════════════════
+   BARRA DE AÇÕES DO FORMULÁRIO
+═══════════════════════════════════════════════════════ */
+.acoes-form {
+  display: flex; gap: 10px;
+  justify-content: flex-end; flex-wrap: wrap;
+  margin-top: 28px; padding-top: 18px;
+  border-top: 1px solid var(--borda);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 24px; border-radius: 7px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .92rem; font-weight: 600;
+  border: none; cursor: pointer; transition: var(--t);
+}
+.btn-primario   { background: var(--azul);     color: #fff; }
+.btn-primario:hover   { background: var(--azul-m); transform: translateY(-1px); }
+.btn-secundario { background: var(--bg); color: var(--texto); border: 1.5px solid var(--borda); }
+.btn-secundario:hover { background: var(--borda); }
+.btn-outline    { background: transparent; color: var(--azul); border: 1.5px solid var(--azul); }
+.btn-outline:hover { background: var(--azul-l); }
+.btn-laranja    { background: var(--laranja); color: #fff; }
+.btn-laranja:hover { opacity: .88; transform: translateY(-1px); }
+.btn-verde      { background: var(--verde); color: #fff; }
+.btn-verde:hover { opacity: .88; transform: translateY(-1px); }
+
+/* ═══════════════════════════════════════════════════════
+   CAIXA DE RESULTADO / AVISO
+═══════════════════════════════════════════════════════ */
+.resultado-box {
+  background: var(--verde-l); border: 1.5px solid var(--verde-b);
+  border-radius: 10px; padding: 18px 22px;
+  margin-top: 18px; display: none;
+}
+.resultado-box.visivel { display: block; }
+.resultado-box h3 { color: var(--verde); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.resultado-box a { color: var(--azul-m); font-weight: 600; word-break: break-all; }
+
+.info-box {
+  background: var(--azul-l); border-radius: 8px;
+  padding: 11px 15px; font-size: .86rem; color: var(--azul);
+  margin-top: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PAINEL DA COORDENAÇÃO
+═══════════════════════════════════════════════════════ */
+.painel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
+.stat-card {
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 22px 20px;
+  border-left: 4px solid var(--azul);
+  display: flex; align-items: center; gap: 16px;
+}
+.stat-card.verde  { border-left-color: var(--verde); }
+.stat-card.laranja { border-left-color: var(--laranja); }
+.stat-card.vermelho { border-left-color: var(--vermelho); }
+.stat-icon { font-size: 2rem; }
+.stat-info strong { display: block; font-size: 1.6rem; font-weight: 700; color: var(--azul); line-height: 1; }
+.stat-info span { font-size: .83rem; color: var(--texto-s); }
+
+.tabela-painel-wrap { overflow-x: auto; }
+.tabela-painel {
+  width: 100%; border-collapse: collapse;
+  border-radius: 8px; overflow: hidden;
+  border: 1.5px solid var(--borda);
+}
+.tabela-painel th {
+  background: var(--azul); color: #fff;
+  padding: 10px 14px; font-size: .83rem;
+  text-align: left; font-weight: 600;
+}
+.tabela-painel td {
+  padding: 10px 14px; font-size: .88rem;
+  border-bottom: 1px solid var(--borda);
+  color: var(--texto);
+}
+.tabela-painel tr:last-child td { border-bottom: none; }
+.tabela-painel tr:hover td { background: var(--azul-l); }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: .78rem; font-weight: 700;
+}
+.status-ok      { background: #dcfce7; color: #166534; }
+.status-pend    { background: #fef9c3; color: #713f12; }
+.status-atrasado { background: #fee2e2; color: #991b1b; }
+.tabela-painel a { color: var(--azul-m); font-size: .82rem; }
+.filtros-painel { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.filtros-painel select, .filtros-painel input {
+  padding: 7px 12px; border: 1.5px solid var(--borda);
+  border-radius: 7px; font-size: .88rem;
+  background: var(--card); color: var(--texto); outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════
+   HISTÓRICO DO PROFESSOR
+═══════════════════════════════════════════════════════ */
+.historico-item {
+  background: var(--card); border-radius: 8px;
+  border: 1.5px solid var(--borda);
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 10px; transition: var(--t);
+}
+.historico-item:hover { border-color: var(--azul); }
+.historico-info strong { font-size: .93rem; color: var(--texto); display: block; }
+.historico-info span { font-size: .8rem; color: var(--texto-s); }
+.historico-item a {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--azul-l); color: var(--azul);
+  padding: 6px 14px; border-radius: 6px;
+  font-size: .83rem; font-weight: 600;
+  text-decoration: none; transition: var(--t); white-space: nowrap;
+}
+.historico-item a:hover { background: var(--azul); color: #fff; }
+.historico-vazio { text-align: center; color: var(--texto-s); padding: 32px; font-size: .93rem; }
+
+/* ═══════════════════════════════════════════════════════
+   MODAL DE PRÉVIA DE PDF
+═══════════════════════════════════════════════════════ */
+#modal-previa {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 500;
+  align-items: center; justify-content: center; padding: 20px;
+}
+#modal-previa.aberto { display: flex; }
+.modal-box {
+  background: var(--card); border-radius: 14px;
+  width: 100%; max-width: 860px; max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 72px rgba(0,0,0,.35);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 16px 22px; border-bottom: 1px solid var(--borda);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--azul);
+}
+.modal-header h3 { color: #fff; font-size: 1rem; font-weight: 700; }
+.modal-header button {
+  background: rgba(255,255,255,.18); border: none;
+  color: #fff; font-size: 1.2rem; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--t);
+}
+.modal-header button:hover { background: rgba(255,255,255,.35); }
+.modal-body { overflow-y: auto; overflow-x: auto; padding: 24px; flex: 1; }
+.modal-footer {
+  padding: 14px 22px; border-top: 1px solid var(--borda);
+  display: flex; gap: 10px; justify-content: flex-end;
+  background: var(--bg);
+}
+
+/* Prévia HTML */
+.previa-doc {
+  border: 1px solid var(--borda); border-radius: 8px;
+  padding: 24px; background: #fff; color: #000;
+  font-family: Arial, sans-serif; font-size: 10pt;
+  min-height: 400px;
+}
+.previa-doc .cab-escola { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 4px; }
+.previa-doc .cab-end { text-align: center; font-size: 8pt; color: #555; margin-bottom: 8px; }
+.previa-doc .linha-id {
+  display: flex; gap: 20px; font-size: 9pt;
+  border-top: 1pt solid #000; border-bottom: 1pt solid #000;
+  padding: 4px 0; margin-bottom: 6px; flex-wrap: wrap;
+}
+.previa-doc .titulo-doc { text-align: center; font-weight: bold; font-size: 11pt; text-decoration: underline; margin-bottom: 8px; }
+.previa-doc table { width: 100%; border-collapse: collapse; font-size: 9pt; table-layout: fixed; }
+.previa-doc th { background: #1a3a6b; color: white; padding: 6px 8px; text-align: left; word-break: break-word; overflow-wrap: break-word; }
+.previa-doc td { border: 1pt solid #aaa; padding: 6px 8px; vertical-align: top; word-break: break-word; overflow-wrap: break-word; }
+.previa-doc .rodape-doc { display: flex; justify-content: space-between; margin-top: 16px; font-size: 9pt; }
+.previa-doc .ass { border-top: 1pt solid #000; padding-top: 2px; min-width: 200px; text-align: center; }
+
+/* ═══════════════════════════════════════════════════════
+   OVERLAY E TOAST
+═══════════════════════════════════════════════════════ */
+#overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,58,107,.6); z-index: 1000;
+  align-items: center; justify-content: center;
+}
+#overlay.ativo { display: flex; }
+.spinner-box {
+  background: var(--card); border-radius: 14px;
+  padding: 36px 48px; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.spinner {
+  width: 46px; height: 46px;
+  border: 4px solid var(--borda); border-top-color: var(--azul);
+  border-radius: 50%; animation: spin .8s linear infinite;
+  margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-box p { color: var(--azul); font-weight: 600; }
+
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--azul); color: #fff;
+  padding: 13px 22px; border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(26,58,107,.3);
+  display: none; max-width: 360px; z-index: 2000;
+  animation: slideIn .3s ease; font-size: .92rem;
+}
+#toast.erro    { background: var(--vermelho); }
+#toast.sucesso { background: var(--verde); }
+#toast.aviso   { background: var(--laranja); }
+@keyframes slideIn { from{transform:translateY(16px);opacity:0} to{transform:none;opacity:1} }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVO
+═══════════════════════════════════════════════════════ */
+@media (max-width: 680px) {
+  .header-inner { flex-wrap: wrap; gap: 10px; }
+  .nav-btn { padding: 10px 14px; font-size: .84rem; }
+  .form-card { padding: 20px 14px; }
+  .campo-grid-2, .campo-grid-3 { grid-template-columns: 1fr; }
+  .acoes-form { flex-direction: column; }
+  .btn { justify-content: center; }
+  .datas-row { grid-template-columns: 1fr 1fr; }
+  .painel-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   IMPRESSÃO
+═══════════════════════════════════════════════════════ */
+@media print {
+  header, nav, .acoes-form, #toast, #overlay, .barra-progresso-wrap,
+  .btn-remover-linha, .btn-linha, .form-subtitulo .autosave-badge { display: none !important; }
+  body { background: #fff !important; }
+  .form-card { box-shadow: none !important; padding: 0 !important; }
+  main { margin: 0 !important; padding: 0 !important; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   PLANEJAMENTO ANUAL
+═══════════════════════════════════════════════════════ */
+.anual-meses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.anual-mes-card {
+  background: var(--bg); border: 1.5px solid var(--borda);
+  border-radius: 8px; padding: 12px;
+}
+.anual-mes-card h4 {
+  font-size: .83rem; font-weight: 700;
+  color: var(--azul); margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: .05em;
+  display: flex; align-items: center; gap: 6px;
+}
+.anual-mes-card textarea {
+  width: 100%; border: 1px solid var(--borda); border-radius: 6px;
+  padding: 7px; font-size: .83rem; color: var(--texto);
+  background: var(--card); resize: vertical; min-height: 60px; outline: none;
+  font-family: 'Source Sans 3', sans-serif;
+  transition: var(--t);
+}
+.anual-mes-card textarea:focus { border-color: var(--azul-m); }
+
+@media (max-width: 640px) { .anual-meses { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════════════
+   [F4-1] MODO OFFLINE
+═══════════════════════════════════════════════════════ */
+#banner-offline {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: #d97706; color: #fff;
+  padding: 8px 20px; font-size: .88rem; font-weight: 600;
+  display: none; align-items: center; justify-content: center; gap: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+#banner-offline.visivel { display: flex; }
+#banner-offline.online  { background: var(--verde, #2d7a4f); }
+.offline-fila-count {
+  background: rgba(255,255,255,.25); border-radius: 20px;
+  padding: 2px 10px; font-size: .78rem;
+}
+.fila-badge {
+  position: fixed; bottom: 80px; right: 24px; z-index: 1500;
+  background: var(--laranja, #d97706); color: #fff;
+  border-radius: 10px; padding: 10px 16px; font-size: .85rem;
+  font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  display: none; cursor: pointer; align-items: center; gap: 8px;
+}
+.fila-badge.visivel { display: flex; }
+
+/* ═══════════════════════════════════════════════════════
+   [F4-2] QR CODE NO RESULTADO
+═══════════════════════════════════════════════════════ */
+.qr-verificacao {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 12px; padding: 12px; background: var(--azul-l);
+  border-radius: 8px; border: 1px solid var(--borda);
+}
+.qr-verificacao img { width: 60px; height: 60px; border-radius: 6px; flex-shrink: 0; }
+.qr-verificacao-info small { font-size: .75rem; color: var(--texto-s); display: block; }
+.qr-verificacao-info a { font-size: .82rem; color: var(--azul); font-weight: 600; word-break: break-all; }
+
+/* ═══════════════════════════════════════════════════════
+   [F4-4] MODULARIZAÇÃO — estilo do footer com versão
+═══════════════════════════════════════════════════════ */
+.versao-footer {
+  text-align: center; padding: 20px;
+  font-size: .72rem; color: var(--texto-s);
+  border-top: 1px solid var(--borda); margin-top: 40px;
+}
+.status-aprovacao {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700;
+}
+.status-aprovacao.aprovado  { background: #dcfce7; color: #166534; }
+.status-aprovacao.revisao   { background: #fef9c3; color: #713f12; }
+.status-aprovacao.pendente  { background: var(--cinza-f, #f4f6fb); color: var(--texto-s, #64748b); }
+
+/* ═══════════════════════════════════════════════════════
+   [V8-2] PÁGINA DE CONFIGURAÇÕES
+═══════════════════════════════════════════════════════ */
+.cfg-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-bottom: 20px; border-bottom: 2px solid var(--borda); padding-bottom: 0;
+}
+.cfg-tab {
+  padding: 9px 18px; border: none; background: transparent;
+  font-family: 'Source Sans 3', sans-serif; font-size: .88rem; font-weight: 600;
+  color: var(--texto-s); cursor: pointer; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; transition: var(--t); border-radius: 6px 6px 0 0;
+}
+.cfg-tab:hover { color: var(--azul); background: var(--azul-l); }
+.cfg-tab.ativo { color: var(--azul); border-bottom-color: var(--dourado); background: var(--azul-l); }
+.cfg-painel { display: none; }
+.cfg-painel.ativo { display: block; }
+.cfg-table { width: 100%; border-collapse: collapse; }
+.cfg-table th {
+  background: var(--azul); color: #fff;
+  padding: 9px 12px; font-size: .82rem; text-align: left; font-weight: 600;
+}
+.cfg-table td { padding: 8px 10px; border-bottom: 1px solid var(--borda); font-size: .88rem; vertical-align: middle; }
+.cfg-table tr:last-child td { border-bottom: none; }
+.cfg-table tr:hover td { background: var(--azul-l); }
+.cfg-table input, .cfg-table select {
+  border: 1px solid var(--borda); border-radius: 5px;
+  padding: 5px 9px; font-size: .87rem; color: var(--texto);
+  background: var(--card); width: 100%; max-width: 340px; outline: none;
+}
+.cfg-table input:focus, .cfg-table select:focus { border-color: var(--azul-m); }
+.chips-wrap {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  min-height: 40px; padding: 6px; border: 1.5px solid var(--borda);
+  border-radius: 8px; background: var(--card); cursor: text;
+}
+.chips-wrap:focus-within { border-color: var(--azul-m); }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--azul-l); color: var(--azul);
+  border: 1px solid var(--azul); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; padding: 3px 10px; white-space: nowrap;
+}
+.chip button { background: none; border: none; color: var(--azul); cursor: pointer; font-size: .9rem; padding: 0 2px; line-height: 1; opacity: .7; }
+.chip button:hover { opacity: 1; color: var(--vermelho); }
+.chip-input { border: none; outline: none; font-size: .88rem; color: var(--texto); background: transparent; min-width: 140px; flex: 1; }
+.atrib-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.btn-remove-atrib { background: none; border: 1px solid var(--borda); color: var(--vermelho); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: .82rem; transition: var(--t); }
+.btn-remove-atrib:hover { background: #fee2e2; }
+.bncc-fonte-badge { font-size: .68rem; padding: 1px 6px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+.bncc-fonte-badge.api  { background: #dcfce7; color: #166534; }
+.bncc-fonte-badge.local { background: #dbeafe; color: #1e40af; }
+
+#modal-aprovacao {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 600;
+  align-items: center; justify-content: center; padding: 20px;
+}
+#modal-aprovacao.aberto { display: flex; }
+.modal-aprov-box {
+  background: var(--card); border-radius: 14px;
+  width: 100%; max-width: 540px;
+  box-shadow: 0 24px 72px rgba(0,0,0,.3);
+  overflow: hidden;
+}
+.modal-aprov-header {
+  padding: 16px 22px; background: var(--azul);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-aprov-header h3 { color: #fff; font-size: 1rem; font-weight: 700; }
+.modal-aprov-header button {
+  background: rgba(255,255,255,.18); border: none; color: #fff;
+  font-size: 1.1rem; cursor: pointer; width: 28px; height: 28px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.modal-aprov-body { padding: 24px; }
+.modal-aprov-info {
+  background: var(--azul-l); border-radius: 8px;
+  padding: 12px 16px; font-size: .88rem; margin-bottom: 16px;
+}
+.modal-aprov-info strong { color: var(--azul); display: block; margin-bottom: 4px; }
+.modal-aprov-footer {
+  padding: 14px 22px; border-top: 1px solid var(--borda);
+  display: flex; gap: 10px; justify-content: flex-end; background: var(--bg);
+}
+
+/* ═══════════════════════════════════════════════════════
+   [F3-3] GRÁFICOS DO PAINEL
+═══════════════════════════════════════════════════════ */
+.graficos-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 18px; margin-bottom: 24px;
+}
+.grafico-card {
+  background: var(--card); border: 1.5px solid var(--borda);
+  border-radius: var(--radius); padding: 18px 16px;
+}
+.grafico-card h4 {
+  font-size: .82rem; font-weight: 700; color: var(--texto-s);
+  text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+.grafico-wrap { position: relative; width: 100%; height: 180px; }
+
+/* ═══════════════════════════════════════════════════════
+   [F3-4] ESTATÍSTICAS PESSOAIS
+═══════════════════════════════════════════════════════ */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px; margin-bottom: 24px;
+}
+.stats-card {
+  background: var(--card); border: 1.5px solid var(--borda);
+  border-radius: var(--radius); padding: 18px 14px; text-align: center;
+}
+.stats-num {
+  font-size: 2rem; font-weight: 700; line-height: 1; margin-bottom: 5px;
+}
+.stats-num.azul   { color: var(--azul); }
+.stats-num.verde  { color: var(--verde); }
+.stats-num.laranja { color: var(--laranja); }
+.stats-num.roxo   { color: #7c3aed; }
+.stats-label { font-size: .8rem; color: var(--texto-s); }
+.stats-streak {
+  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-m) 100%);
+  border-radius: var(--radius); padding: 18px; color: #fff; text-align: center;
+  margin-bottom: 18px;
+}
+.stats-streak .streak-num { font-size: 3rem; font-weight: 700; line-height: 1; }
+.stats-streak .streak-label { font-size: .88rem; opacity: .8; margin-top: 4px; }
+
+/* Histórico com ações */
+.historico-item-acoes {
+  display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+}
+.historico-item .btn-editar {
+  background: var(--azul-l); color: var(--azul);
+  border: 1px solid var(--azul); border-radius: 6px;
+  padding: 5px 12px; font-size: .78rem; font-weight: 600;
+  cursor: pointer; transition: var(--t); white-space: nowrap;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+}
+.historico-item .btn-editar:hover { background: var(--azul); color: #fff; }
+.historico-item .btn-aprovar {
+  background: #f0fdf4; color: var(--verde);
+  border: 1px solid var(--verde); border-radius: 6px;
+  padding: 5px 12px; font-size: .78rem; font-weight: 600;
+  cursor: pointer; transition: var(--t); white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.historico-item .btn-aprovar:hover { background: var(--verde); color: #fff; }
+
+@media (max-width: 640px) { .graficos-grid { grid-template-columns: 1fr; } }
+#banner-perfil {
+  background: var(--azul-l); border-bottom: 1px solid var(--borda);
+  padding: 6px 24px; font-size: .82rem; color: var(--texto-s);
+  display: none; align-items: center; gap: 10px;
+}
+#banner-perfil.visivel { display: flex; }
+#banner-perfil strong { color: var(--azul); }
+.perfil-badge {
+  font-size: .72rem; font-weight: 700; padding: 2px 9px;
+  border-radius: 20px; letter-spacing: .04em;
+}
+.perfil-badge.coordenacao { background: #dbeafe; color: #1e40af; }
+.perfil-badge.professor   { background: #dcfce7; color: #166534; }
+.perfil-badge.desconhecido { background: #fef9c3; color: #713f12; }
+
+/* ═══════════════════════════════════════════════════════
+   [F2-2] CALENDÁRIO ESCOLAR
+═══════════════════════════════════════════════════════ */
+#pagina-calendario .form-card { padding: 28px; }
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+}
+.cal-nav { display: flex; align-items: center; gap: 12px; }
+.cal-nav-btn {
+  background: var(--azul-l); border: 1px solid var(--borda);
+  color: var(--azul); width: 32px; height: 32px;
+  border-radius: 6px; cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: var(--t);
+}
+.cal-nav-btn:hover { background: var(--azul); color: #fff; }
+.cal-mes-label { font-family: 'Merriweather', serif; font-size: 1rem; color: var(--azul); font-weight: 700; min-width: 160px; text-align: center; }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 3px; border-radius: 8px; overflow: hidden;
+}
+.cal-dia-header {
+  background: var(--azul); color: #fff;
+  text-align: center; padding: 8px 4px;
+  font-size: .75rem; font-weight: 700;
+  letter-spacing: .04em;
+}
+.cal-dia {
+  min-height: 62px; padding: 5px 6px;
+  background: var(--card); border: 1px solid var(--borda);
+  border-radius: 4px; position: relative; font-size: .8rem;
+  cursor: default; transition: background var(--t);
+}
+.cal-dia.outro-mes { opacity: .3; }
+.cal-dia.hoje { border-color: var(--azul); background: var(--azul-l); }
+.cal-dia.feriado { background: #fee2e2; border-color: #fca5a5; }
+.cal-dia.recesso { background: #fef9c3; border-color: #fde68a; }
+.cal-dia.evento  { background: #dbeafe; border-color: #93c5fd; }
+.cal-dia.letivo-especial { background: #dcfce7; border-color: #86efac; }
+.cal-dia-num {
+  font-size: .82rem; font-weight: 700; color: var(--texto); margin-bottom: 3px;
+}
+.cal-dia.feriado .cal-dia-num { color: #991b1b; }
+.cal-dia.recesso .cal-dia-num { color: #713f12; }
+.cal-dia.evento  .cal-dia-num { color: #1e40af; }
+.cal-evento-label {
+  font-size: .68rem; line-height: 1.3; color: var(--texto-s);
+  overflow: hidden; display: -webkit-box; 
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  line-clamp: 2;
+}
+.cal-legenda {
+  display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap;
+}
+.cal-leg-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: .78rem; color: var(--texto-s);
+}
+.cal-leg-cor {
+  width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   [F2-3] AUTOCOMPLETE BNCC
+═══════════════════════════════════════════════════════ */
+.bncc-wrap { position: relative; }
+.bncc-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 300;
+  background: var(--card); border: 1.5px solid var(--azul-m);
+  border-radius: 8px; box-shadow: var(--shadow);
+  max-height: 260px; overflow-y: auto; margin-top: 2px;
+  display: none;
+}
+.bncc-dropdown.aberto { display: block; }
+.bncc-item {
+  padding: 10px 14px; cursor: pointer;
+  border-bottom: 1px solid var(--borda);
+  transition: background var(--t);
+}
+.bncc-item:last-child { border-bottom: none; }
+.bncc-item:hover { background: var(--azul-l); }
+.bncc-codigo { font-size: .78rem; font-weight: 700; color: var(--azul); font-family: monospace; }
+.bncc-segmento { font-size: .72rem; color: var(--texto-s); margin-left: 8px; }
+.bncc-desc { font-size: .82rem; color: var(--texto); margin-top: 3px; line-height: 1.4; }
+.bncc-selecionado {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--azul-l); color: var(--azul);
+  border: 1px solid var(--azul); border-radius: 4px;
+  font-size: .78rem; font-weight: 600; padding: 3px 8px;
+  margin: 2px; cursor: pointer;
+}
+.bncc-selecionado:hover { background: var(--azul); color: #fff; }
+.bncc-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; min-height: 0; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════ -->
+<header>
+  <div class="header-inner">
+    <div class="escola-nome">
+      <h1>Colégio Municipal de 1º e 2º Graus de Itabatan</h1>
+      <p>Secretaria Municipal de Educação — Mucuri / BA</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-imprimir-header" onclick="imprimirAtual()" title="Imprimir formulário atual">🖨️ Imprimir</button>
+      <button class="btn-tema" id="btn-tema" onclick="alternarTema()" title="Alternar modo escuro">🌙</button>
+      <span class="badge-ano" id="badge-ano">2026</span>
+    </div>
+  </div>
+</header>
+
+<!-- [F4-1] Banner offline -->
+<div id="banner-offline">
+  <span id="banner-offline-msg">📡 Sem conexão — planejamentos serão salvos localmente</span>
+  <span class="offline-fila-count" id="offline-fila-count" style="display:none">0 na fila</span>
+</div>
+
+<!-- [F4-1] Badge flutuante da fila -->
+<div class="fila-badge" id="fila-badge" onclick="processarFilaOffline()">
+  📤 <span id="fila-badge-num">0</span> aguardando envio — clique para enviar
+</div>
+
+<!-- [F4-4] Banner de perfil -->
+<div id="banner-perfil">
+  <span>Olá, <strong id="perfil-nome">—</strong></span>
+  <span class="perfil-badge" id="perfil-badge">—</span>
+  <span style="margin-left:auto;font-size:.75rem" id="perfil-email"></span>
+  <button onclick="deslogar()" title="Sair do sistema"
+    style="margin-left:12px;background:transparent;border:1px solid rgba(26,58,107,.3);
+           color:var(--azul);border-radius:6px;padding:3px 12px;font-size:.78rem;
+           cursor:pointer;white-space:nowrap;transition:background .15s"
+    onmouseover="this.style.background='rgba(26,58,107,.08)'"
+    onmouseout="this.style.background='transparent'">⬅ Sair</button>
+</div>
+
+<!-- ══ NAVEGAÇÃO ══════════════════════════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <button class="nav-btn ativo" onclick="mostrarPagina('menu')"        id="nav-menu">🏠 Início</button>
+    <button class="nav-btn"       onclick="mostrarPagina('trimestral')"  id="nav-trimestral">📅 Trimestral</button>
+    <button class="nav-btn"       onclick="mostrarPagina('semanal')"     id="nav-semanal">📋 Semanal</button>
+    <button class="nav-btn"       onclick="mostrarPagina('anual')"       id="nav-anual">📆 Anual</button>
+    <button class="nav-btn"       onclick="mostrarPagina('calendario')"  id="nav-calendario">📅 Calendário</button>
+    <button class="nav-btn"       onclick="mostrarPagina('historico')"   id="nav-historico">📂 Meu Histórico</button>
+    <button class="nav-btn"       onclick="mostrarPagina('estatisticas')" id="nav-estatisticas">📈 Estatísticas</button>
+    <button class="nav-btn coord-only" onclick="mostrarPagina('coordenacao')" id="nav-coordenacao">📊 Coordenação</button>
+    <button class="nav-btn coord-only" onclick="mostrarPagina('configuracoes')" id="nav-configuracoes">⚙️ Configurações</button>
+  </div>
+</nav>
+
+<!-- ══ BARRA DE PROGRESSO ════════════════════════════ -->
+<div class="barra-progresso-wrap" id="barra-progresso-wrap">
+  <div class="barra-progresso-inner">
+    <span class="barra-label" id="barra-label">Preenchimento</span>
+    <div class="barra-track"><div class="barra-fill" id="barra-fill"></div></div>
+    <span class="barra-pct" id="barra-pct">0%</span>
+  </div>
+</div>
+
+<!-- ══ CONTEÚDO ═══════════════════════════════════════ -->
+<main>
+
+<!-- ────── MENU ────── -->
+<div id="pagina-menu">
+  <div class="welcome-text">
+    <h2>Sistema de Planejamento Escolar</h2>
+    <p>Preencha, salve e baixe seus planejamentos pedagógicos em PDF — com rascunho automático.</p>
+  </div>
+  <div class="menu-cards">
+    <div class="menu-card" onclick="mostrarPagina('trimestral')">
+      <div class="card-icon">📅</div>
+      <h2>Planejamento Trimestral</h2>
+      <p>Unidades temáticas, habilidades, metodologias e avaliação por trimestre.</p>
+      <button class="btn-card">Preencher</button>
+    </div>
+    <div class="menu-card" onclick="mostrarPagina('semanal')">
+      <div class="card-icon">📋</div>
+      <h2>Planejamento Semanal</h2>
+      <p>Habilidades, estratégias e recursos dia a dia para cada semana.</p>
+      <button class="btn-card">Preencher</button>
+    </div>
+    <div class="menu-card" onclick="mostrarPagina('anual')">
+      <div class="card-icon">📆</div>
+      <h2>Planejamento Anual</h2>
+      <p>Visão macro do ano: metas, BNCC, distribuição de conteúdo por mês.</p>
+      <button class="btn-card">Preencher</button>
+    </div>
+    <div class="menu-card" onclick="mostrarPagina('historico')">
+      <div class="card-icon">📂</div>
+      <h2>Meu Histórico</h2>
+      <p>Acesse todos os PDFs que você já salvou no Drive.</p>
+      <button class="btn-card">Ver histórico</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── PLANEJAMENTO TRIMESTRAL ────── -->
+<div id="pagina-trimestral" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📅 Planejamento Trimestral 2026</div>
+    <div class="form-subtitulo">
+      <span>Preencha e clique em "Salvar PDF" para gerar o documento no Drive.</span>
+      <span class="autosave-badge"><span class="dot"></span> Rascunho automático ativo</span>
+    </div>
+
+    <div class="section-label">📌 Identificação</div>
+    <div class="campo-grid-3">
+      <div class="campo">
+        <label>Professor(a) *</label>
+        <select id="t-professor"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Componente Curricular *</label>
+        <select id="t-componente"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Ano / Turma *</label>
+        <select id="t-anoturma"><option value="">— selecione —</option></select>
+      </div>
+    </div>
+    <div class="campo-grid-3" style="margin-top:12px">
+      <div class="campo">
+        <label>Trimestre *</label>
+        <select id="t-trimestre">
+          <option value="I">I Trimestre</option>
+          <option value="II">II Trimestre</option>
+          <option value="III">III Trimestre</option>
+        </select>
+      </div>
+      <div class="campo campo-full">
+        <label>Observações Gerais</label>
+        <textarea id="t-obs" placeholder="Observações da coordenação, contexto da turma, adaptações curriculares..."></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">📖 Conteúdo do Planejamento</div>
+    <div class="tabela-planejamento">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22%">Unidade Temática / Objetos de Conhecimento</th>
+            <th style="width:35%">Habilidades</th>
+            <th style="width:22%">Metodologia / Recursos</th>
+            <th style="width:18%">Avaliação</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="t-linhas"></tbody>
+      </table>
+    </div>
+    <button class="btn-linha" onclick="adicionarLinhaTrimestral()">➕ Adicionar linha</button>
+
+    <div class="info-box">
+      <strong>Distribuição de pontuação (padrão):</strong>
+      Avaliação Geral: <strong>12,0</strong> | Avaliação Parcial: <strong>18,0</strong> — detalhe a distribuição no campo Avaliação de cada linha.
+    </div>
+
+    <div class="resultado-box" id="t-resultado">
+      <h3>✅ PDF gerado com sucesso!</h3>
+      <p>O arquivo foi salvo no Google Drive da escola.</p>
+      <p style="margin-top:8px"><a id="t-link-pdf" href="#" target="_blank">📄 Abrir / Baixar PDF</a></p>
+      <div class="qr-verificacao" id="t-qr-box" style="display:none">
+        <img id="t-qr-img" src="" alt="QR de verificação">
+        <div class="qr-verificacao-info">
+          <small>Escaneie para verificar a autenticidade do documento impresso</small>
+          <a id="t-qr-link" href="#" target="_blank">🔗 Abrir página de verificação</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="acoes-form">
+      <button class="btn btn-secundario" onclick="limparTrimestral()">🗑️ Limpar</button>
+      <button class="btn btn-outline"    onclick="previaTrimestral()">👁️ Prévia</button>
+      <button class="btn btn-laranja"    onclick="exportarDocs('trimestral')">📝 Exportar Docs</button>
+      <button class="btn btn-primario"   onclick="salvarTrimestral()">💾 Salvar PDF no Drive</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── PLANEJAMENTO SEMANAL ────── -->
+<div id="pagina-semanal" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📋 Planejamento Semanal 2026</div>
+    <div class="form-subtitulo">
+      <span>Preencha as informações da semana e clique em "Salvar PDF".</span>
+      <span class="autosave-badge"><span class="dot"></span> Rascunho automático ativo</span>
+    </div>
+
+    <div class="section-label">📌 Identificação</div>
+    <div class="campo-grid-3">
+      <div class="campo">
+        <label>Professor(a) *</label>
+        <select id="s-professor"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Componente Curricular *</label>
+        <select id="s-componente"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Turmas *</label>
+        <select id="s-turmas" multiple style="min-height:68px"><option value="">— selecione —</option></select>
+      </div>
+    </div>
+    <div class="campo-grid-3" style="margin-top:12px">
+      <div class="campo">
+        <label>Mês *</label>
+        <select id="s-mes">
+          <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+          <option>Abril</option><option>Maio</option><option>Junho</option>
+          <option>Julho</option><option>Agosto</option><option>Setembro</option>
+          <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Início da semana *</label>
+        <input type="date" id="s-inicio">
+      </div>
+      <div class="campo">
+        <label>Término da semana *</label>
+        <input type="date" id="s-fim">
+      </div>
+    </div>
+    <div class="campo" style="margin-top:12px">
+      <label>Observações Gerais</label>
+      <textarea id="s-obs" placeholder="Observações da semana, eventos, adaptações..."></textarea>
+    </div>
+
+    <div class="section-label">📆 Datas por dia</div>
+    <div class="datas-row">
+      <div class="data-dia"><label>Segunda-feira</label><input type="date" id="s-d0" class="s-data"></div>
+      <div class="data-dia"><label>Terça-feira</label>  <input type="date" id="s-d1" class="s-data"></div>
+      <div class="data-dia"><label>Quarta-feira</label> <input type="date" id="s-d2" class="s-data"></div>
+      <div class="data-dia"><label>Quinta-feira</label> <input type="date" id="s-d3" class="s-data"></div>
+      <div class="data-dia"><label>Sexta-feira</label>  <input type="date" id="s-d4" class="s-data"></div>
+    </div>
+
+    <div class="section-label">📖 Planejamento por dia</div>
+    <div class="tabela-semanal-wrap">
+      <div class="tabela-semanal">
+        <table>
+          <thead>
+            <tr>
+              <th class="th-campo"></th>
+              <th>Segunda-feira</th><th>Terça-feira</th>
+              <th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="campo-label">HABILIDADE</td>
+              <td><textarea id="s-r0c0" placeholder="Habilidade..."></textarea></td>
+              <td><textarea id="s-r0c1" placeholder="Habilidade..."></textarea></td>
+              <td><textarea id="s-r0c2" placeholder="Habilidade..."></textarea></td>
+              <td><textarea id="s-r0c3" placeholder="Habilidade..."></textarea></td>
+              <td><textarea id="s-r0c4" placeholder="Habilidade..."></textarea></td></tr>
+            <tr><td class="campo-label">ESTRATÉGIA</td>
+              <td><textarea id="s-r1c0" placeholder="Estratégia..."></textarea></td>
+              <td><textarea id="s-r1c1" placeholder="Estratégia..."></textarea></td>
+              <td><textarea id="s-r1c2" placeholder="Estratégia..."></textarea></td>
+              <td><textarea id="s-r1c3" placeholder="Estratégia..."></textarea></td>
+              <td><textarea id="s-r1c4" placeholder="Estratégia..."></textarea></td></tr>
+            <tr><td class="campo-label">RECURSOS</td>
+              <td><textarea id="s-r2c0" placeholder="Recursos..."></textarea></td>
+              <td><textarea id="s-r2c1" placeholder="Recursos..."></textarea></td>
+              <td><textarea id="s-r2c2" placeholder="Recursos..."></textarea></td>
+              <td><textarea id="s-r2c3" placeholder="Recursos..."></textarea></td>
+              <td><textarea id="s-r2c4" placeholder="Recursos..."></textarea></td></tr>
+            <tr><td class="campo-label">OBSERVAÇÃO</td>
+              <td><textarea id="s-r3c0" placeholder="Observação..."></textarea></td>
+              <td><textarea id="s-r3c1" placeholder="Observação..."></textarea></td>
+              <td><textarea id="s-r3c2" placeholder="Observação..."></textarea></td>
+              <td><textarea id="s-r3c3" placeholder="Observação..."></textarea></td>
+              <td><textarea id="s-r3c4" placeholder="Observação..."></textarea></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="resultado-box" id="s-resultado">
+      <h3>✅ PDF gerado com sucesso!</h3>
+      <p>O arquivo foi salvo no Google Drive da escola.</p>
+      <p style="margin-top:8px"><a id="s-link-pdf" href="#" target="_blank">📄 Abrir / Baixar PDF</a></p>
+      <div class="qr-verificacao" id="s-qr-box" style="display:none">
+        <img id="s-qr-img" src="" alt="QR de verificação">
+        <div class="qr-verificacao-info">
+          <small>Escaneie para verificar a autenticidade do documento impresso</small>
+          <a id="s-qr-link" href="#" target="_blank">🔗 Abrir página de verificação</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="acoes-form">
+      <button class="btn btn-secundario" onclick="limparSemanal()">🗑️ Limpar</button>
+      <button class="btn btn-outline"    onclick="duplicarSemana()">📋 Duplicar semana anterior</button>
+      <button class="btn btn-outline"    onclick="previaSemanal()">👁️ Prévia</button>
+      <button class="btn btn-laranja"    onclick="exportarDocs('semanal')">📝 Exportar Docs</button>
+      <button class="btn btn-primario"   onclick="salvarSemanal()">💾 Salvar PDF no Drive</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── PLANEJAMENTO ANUAL ────── -->
+<div id="pagina-anual" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📆 Planejamento Anual 2026</div>
+    <div class="form-subtitulo">
+      <span>Visão macro do ano letivo: metas, BNCC e conteúdo distribuído por mês.</span>
+      <span class="autosave-badge"><span class="dot"></span> Rascunho automático ativo</span>
+    </div>
+
+    <div class="section-label">📌 Identificação</div>
+    <div class="campo-grid-3">
+      <div class="campo">
+        <label>Professor(a) *</label>
+        <select id="a-professor"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Componente Curricular *</label>
+        <select id="a-componente"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo">
+        <label>Ano / Turma *</label>
+        <select id="a-anoturma"><option value="">— selecione —</option></select>
+      </div>
+    </div>
+
+    <div class="section-label">🎯 Metas e Objetivos Anuais</div>
+    <div class="campo-grid-2">
+      <div class="campo">
+        <label>Objetivo Geral</label>
+        <textarea id="a-objetivo" placeholder="Objetivo geral do componente curricular para o ano letivo..." style="min-height:90px"></textarea>
+      </div>
+      <div class="campo">
+        <label>Competências BNCC Trabalhadas</label>
+        <textarea id="a-bncc" placeholder="Ex.: Competências Gerais 1, 2 e 4; Competências específicas da área..." style="min-height:90px"></textarea>
+      </div>
+    </div>
+
+    <div class="section-label">📅 Distribuição Mensal de Conteúdo</div>
+    <div class="anual-meses" id="anual-meses">
+      <!-- Gerado pelo JS -->
+    </div>
+
+    <div class="section-label">📝 Observações e Adaptações</div>
+    <div class="campo">
+      <label>Observações gerais, adaptações curriculares, necessidades especiais identificadas</label>
+      <textarea id="a-obs" placeholder="Informações adicionais relevantes para o planejamento do ano..." style="min-height:80px"></textarea>
+    </div>
+
+    <div class="resultado-box" id="a-resultado">
+      <h3>✅ PDF gerado com sucesso!</h3>
+      <p>O arquivo foi salvo no Google Drive da escola.</p>
+      <p style="margin-top:8px"><a id="a-link-pdf" href="#" target="_blank">📄 Abrir / Baixar PDF</a></p>
+      <div class="qr-verificacao" id="a-qr-box" style="display:none">
+        <img id="a-qr-img" src="" alt="QR de verificação">
+        <div class="qr-verificacao-info">
+          <small>Escaneie para verificar a autenticidade do documento impresso</small>
+          <a id="a-qr-link" href="#" target="_blank">🔗 Abrir página de verificação</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="acoes-form">
+      <button class="btn btn-secundario" onclick="limparAnual()">🗑️ Limpar</button>
+      <button class="btn btn-outline"    onclick="previaAnual()">👁️ Prévia</button>
+      <button class="btn btn-laranja"    onclick="exportarDocs('anual')">📝 Exportar Docs</button>
+      <button class="btn btn-primario"   onclick="salvarAnual()">💾 Salvar PDF no Drive</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── HISTÓRICO DO PROFESSOR ────── -->
+<div id="pagina-historico" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📂 Meu Histórico de Planejamentos</div>
+    <div class="form-subtitulo"><span>Todos os PDFs que você salvou no Drive, com acesso direto.</span></div>
+
+    <div class="filtros-painel">
+      <select id="hist-professor" onchange="carregarHistorico()">
+        <option value="">— selecione o professor —</option>
+      </select>
+      <select id="hist-tipo" onchange="carregarHistorico()">
+        <option value="">Todos os tipos</option>
+        <option value="Trimestral">Trimestral</option>
+        <option value="Semanal">Semanal</option>
+        <option value="Anual">Anual</option>
+      </select>
+      <input type="text" id="hist-busca" placeholder="Buscar por componente..." oninput="carregarHistorico()" style="min-width:180px">
+    </div>
+
+    <div id="historico-lista">
+      <div class="historico-vazio">Selecione um professor para ver o histórico.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ────── PAINEL DA COORDENAÇÃO ────── -->
+<div id="pagina-coordenacao" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📊 Painel da Coordenação</div>
+    <div class="form-subtitulo"><span>Visão geral de entregas, pendências e relatório de planejamentos.</span></div>
+
+    <!-- KPIs -->
+    <div class="painel-grid" id="painel-kpis">
+      <div class="stat-card verde">
+        <div class="stat-icon">✅</div>
+        <div class="stat-info"><strong id="kpi-entregues">—</strong><span>Planejamentos entregues</span></div>
+      </div>
+      <div class="stat-card laranja">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-info"><strong id="kpi-pendentes">—</strong><span>Pendentes no trimestre</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👩‍🏫</div>
+        <div class="stat-info"><strong id="kpi-professores">—</strong><span>Professores cadastrados</span></div>
+      </div>
+      <div class="stat-card vermelho">
+        <div class="stat-icon">📝</div>
+        <div class="stat-info"><strong id="kpi-semanais">—</strong><span>Planos semanais no mês</span></div>
+      </div>
+    </div>
+
+    <!-- [F3-3] Gráficos -->
+    <div class="graficos-grid" id="graficos-wrap">
+      <div class="grafico-card">
+        <h4>Entregas por mês</h4>
+        <div class="grafico-wrap"><canvas id="grafico-meses"></canvas></div>
+      </div>
+      <div class="grafico-card">
+        <h4>Distribuição por tipo</h4>
+        <div class="grafico-wrap"><canvas id="grafico-tipos"></canvas></div>
+      </div>
+      <div class="grafico-card">
+        <h4>Professores — com x sem plano</h4>
+        <div class="grafico-wrap"><canvas id="grafico-cobertura"></canvas></div>
+      </div>
+      <div class="grafico-card">
+        <h4>Top 5 — mais entregas</h4>
+        <div class="grafico-wrap"><canvas id="grafico-top5"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros-painel">
+      <select id="coord-trimestre" onchange="carregarPainel()">
+        <option value="">Todos os trimestres</option>
+        <option value="I">I Trimestre</option>
+        <option value="II">II Trimestre</option>
+        <option value="III">III Trimestre</option>
+      </select>
+      <select id="coord-componente" onchange="carregarPainel()">
+        <option value="">Todos os componentes</option>
+      </select>
+      <input type="text" id="coord-busca" placeholder="Buscar professor..." oninput="carregarPainel()" style="min-width:180px">
+      <button class="btn btn-outline" onclick="gerarRelatorioPendencias()" style="padding:7px 14px; font-size:.85rem">
+        📋 Gerar Relatório de Pendências
+      </button>
+    </div>
+
+    <!-- Tabela de entregas -->
+    <div class="tabela-painel-wrap">
+      <table class="tabela-painel">
+        <thead>
+          <tr>
+            <th>Professor(a)</th>
+            <th>Componente</th>
+            <th>Tipo</th>
+            <th>Trimestre / Semana</th>
+            <th>Data de entrega</th>
+            <th>Status</th>
+            <th>Aprovação</th>
+            <th>PDF</th>
+          </tr>
+        </thead>
+        <tbody id="painel-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:32px;color:var(--texto-s)">
+            Clique em "Atualizar" para carregar os dados da planilha.
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="acoes-form">
+      <button class="btn btn-secundario" onclick="carregarPainel(true)">🔄 Forçar atualização</button>
+      <button class="btn btn-primario"   onclick="exportarPainelXLSX()">⬇️ Exportar XLSX</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── ESTATÍSTICAS PESSOAIS [F3-4] ────── -->
+<div id="pagina-estatisticas" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📈 Minhas Estatísticas</div>
+    <div class="form-subtitulo">
+      <span>Resumo do seu engajamento no sistema de planejamento.</span>
+      <div class="campo" style="min-width:220px">
+        <select id="stats-professor" onchange="carregarEstatisticas()">
+          <option value="">— selecione —</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="stats-conteudo" style="display:none">
+      <!-- Sequência em destaque -->
+      <div class="stats-streak">
+        <div class="streak-num" id="stats-seq">—</div>
+        <div class="streak-label">semanas consecutivas no mês atual</div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="stats-grid">
+        <div class="stats-card">
+          <div class="stats-num azul" id="stats-trimestral">—</div>
+          <div class="stats-label">Planos trimestrais</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-num verde" id="stats-semanal">—</div>
+          <div class="stats-label">Planos semanais</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-num roxo" id="stats-anual">—</div>
+          <div class="stats-label">Planos anuais</div>
+        </div>
+        <div class="stats-card">
+          <div class="stats-num laranja" id="stats-aprovados">—</div>
+          <div class="stats-label">Aprovados pela coord.</div>
+        </div>
+      </div>
+
+      <!-- Aprovações recebidas -->
+      <div class="section-label">✅ Histórico de aprovações</div>
+      <div id="stats-aprovacoes-lista">
+        <div class="historico-vazio">Nenhuma aprovação registrada ainda.</div>
+      </div>
+    </div>
+
+    <div id="stats-vazio" style="text-align:center;padding:32px;color:var(--texto-s)">
+      Selecione um professor para ver as estatísticas.
+    </div>
+  </div>
+</div>
+
+<!-- ────── MODAL DE APROVAÇÃO [F3-1] ────── -->
+<div id="modal-aprovacao">
+  <div class="modal-aprov-box">
+    <div class="modal-aprov-header">
+      <h3>✍️ Decisão da Coordenação</h3>
+      <button onclick="fecharModalAprovacao()">✕</button>
+    </div>
+    <div class="modal-aprov-body">
+      <div class="modal-aprov-info">
+        <strong id="aprov-info-titulo">—</strong>
+        <span id="aprov-info-detalhe"></span>
+      </div>
+      <div class="campo" style="margin-bottom:14px">
+        <label>Decisão *</label>
+        <select id="aprov-decisao">
+          <option value="APROVADO">✅ Aprovado</option>
+          <option value="REVISAO">🔄 Solicitar revisão</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Comentário (opcional)</label>
+        <textarea id="aprov-comentario" placeholder="Feedback para o professor(a)..." style="min-height:90px"></textarea>
+      </div>
+    </div>
+    <div class="modal-aprov-footer">
+      <button class="btn btn-secundario" onclick="fecharModalAprovacao()">Cancelar</button>
+      <button class="btn btn-primario"   onclick="confirmarAprovacao()">💾 Confirmar decisão</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────── CONFIGURAÇÕES [V8-2] ────── -->
+<div id="pagina-configuracoes" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">⚙️ Configurações do Sistema</div>
+    <div class="form-subtitulo"><span>Gerencie todos os parâmetros do sistema. Alterações são salvas imediatamente na planilha.</span></div>
+
+    <!-- Abas -->
+    <div class="cfg-tabs">
+      <button class="cfg-tab ativo" onclick="cfg_aba('escola')">🏫 Escola</button>
+      <button class="cfg-tab" onclick="cfg_aba('professores')">👩‍🏫 Professores</button>
+      <button class="cfg-tab" onclick="cfg_aba('atribuicoes')">📋 Atribuições</button>
+      <button class="cfg-tab" onclick="cfg_aba('pontuacao')">📊 Avaliação</button>
+      <button class="cfg-tab" onclick="cfg_aba('bncc')">📚 BNCC</button>
+    </div>
+
+    <!-- ABA: Escola -->
+    <div class="cfg-painel ativo" id="cfg-escola">
+      <div class="section-label">🏫 Dados da Escola</div>
+      <table class="cfg-table">
+        <thead><tr><th style="width:30%">Campo</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Nome da escola</td><td><input id="cfg-escola_nome" placeholder="Nome completo da escola"></td></tr>
+          <tr><td>Endereço</td><td><input id="cfg-escola_endereco" placeholder="Av. ..."></td></tr>
+          <tr><td>CEP</td><td><input id="cfg-escola_cep" placeholder="00.000-000" style="max-width:140px"></td></tr>
+          <tr><td>Portaria de criação</td><td><input id="cfg-escola_criacao" placeholder="Criação ..."></td></tr>
+          <tr><td>Ano letivo atual</td><td><input id="cfg-ano_letivo" placeholder="2026" style="max-width:100px" type="number"></td></tr>
+          <tr><td>Número de trimestres</td><td>
+            <select id="cfg-trimestres" style="max-width:120px">
+              <option value="2">2 semestres</option>
+              <option value="3" selected>3 trimestres</option>
+            </select>
+          </td></tr>
+          <tr><td>Nome da coordenação</td><td><input id="cfg-coordenacao_nome" placeholder="Coordenadora Pedagógica"></td></tr>
+          <tr><td>Duração da aula (min)</td><td><input id="cfg-hora_aula_minutos" placeholder="50" style="max-width:100px" type="number"></td></tr>
+          <tr><td>Dias letivos anuais</td><td><input id="cfg-dias_letivos_anuais" placeholder="200" style="max-width:100px" type="number"></td></tr>
+        </tbody>
+      </table>
+      <div class="acoes-form">
+        <button class="btn btn-primario" onclick="salvarCfgEscola()">💾 Salvar configurações</button>
+      </div>
+    </div>
+
+    <!-- ABA: Professores -->
+    <div class="cfg-painel" id="cfg-professores">
+      <div class="section-label">👩‍🏫 Professores cadastrados
+        <span style="font-size:.75rem;font-weight:400;margin-left:8px;color:var(--texto-s)">Digite e pressione Enter para adicionar</span>
+      </div>
+      <div class="chips-wrap" id="chips-professores" onclick="document.getElementById('input-professor').focus()">
+        <input class="chip-input" id="input-professor" placeholder="Nome do professor..." onkeydown="chipKeydown(event,'professores')">
+      </div>
+
+      <div class="section-label" style="margin-top:20px">🧩 Componentes curriculares</div>
+      <div class="chips-wrap" id="chips-componentes" onclick="document.getElementById('input-componente').focus()">
+        <input class="chip-input" id="input-componente" placeholder="Ex.: Matemática..." onkeydown="chipKeydown(event,'componentes')">
+      </div>
+
+      <div class="section-label" style="margin-top:20px">🏷️ Turmas</div>
+      <div class="chips-wrap" id="chips-turmas" onclick="document.getElementById('input-turma').focus()">
+        <input class="chip-input" id="input-turma" placeholder="Ex.: 6ºA..." onkeydown="chipKeydown(event,'turmas')">
+      </div>
+
+      <div class="section-label" style="margin-top:20px">📧 E-mails dos professores</div>
+      <p style="font-size:.83rem;color:var(--texto-s);margin-bottom:12px">O e-mail é usado para identificar o professor no login e enviar notificações.</p>
+      <div id="emails-professores-lista"></div>
+
+      <div class="acoes-form">
+        <button class="btn btn-secundario" onclick="carregarConfiguracoes()">↩️ Reverter</button>
+        <button class="btn btn-primario" onclick="salvarCfgProfessores()">💾 Salvar professores</button>
+      </div>
+    </div>
+
+    <!-- ABA: Atribuições -->
+    <div class="cfg-painel" id="cfg-atribuicoes">
+      <div class="form-subtitulo" style="margin-bottom:16px;border:none;padding:0">
+        <span>Define quais turmas e componentes cada professor pode acessar. O professor só verá os registros atribuídos a ele.</span>
+      </div>
+      <div class="section-label">📋 Atribuições professor × componente × turma</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:10px">
+        <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Professor</strong>
+        <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Componente</strong>
+        <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Turma</strong>
+        <span></span>
+      </div>
+      <div id="atrib-linhas"></div>
+      <button class="btn-linha" onclick="adicionarLinhaAtrib()" style="margin-top:8px">➕ Adicionar atribuição</button>
+
+      <div class="acoes-form">
+        <button class="btn btn-secundario" onclick="carregarConfiguracoes()">↩️ Reverter</button>
+        <button class="btn btn-primario" onclick="salvarCfgAtribuicoes()">💾 Salvar atribuições</button>
+      </div>
+    </div>
+
+    <!-- ABA: Pontuação -->
+    <div class="cfg-painel" id="cfg-pontuacao">
+      <div class="section-label">📊 Distribuição de pontuação</div>
+      <table class="cfg-table">
+        <thead><tr><th style="width:40%">Parâmetro</th><th>Valor</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Avaliação Geral</td>
+            <td><input id="cfg-avaliacao_geral" placeholder="12,0" style="max-width:100px"></td>
+            <td style="font-size:.82rem;color:var(--texto-s)">Prova / avaliação formal</td>
+          </tr>
+          <tr>
+            <td>Avaliação Parcial (total)</td>
+            <td><input id="cfg-avaliacao_parcial" placeholder="18,0" style="max-width:100px"></td>
+            <td style="font-size:.82rem;color:var(--texto-s)">Soma das avaliações parciais</td>
+          </tr>
+          <tr>
+            <td>Lembrete semanal — dia</td>
+            <td>
+              <select id="cfg-lembrete_dia_semana" style="max-width:160px">
+                <option value="MONDAY">Segunda-feira</option>
+                <option value="TUESDAY">Terça-feira</option>
+                <option value="WEDNESDAY">Quarta-feira</option>
+                <option value="THURSDAY">Quinta-feira</option>
+                <option value="FRIDAY" selected>Sexta-feira</option>
+              </select>
+            </td>
+            <td style="font-size:.82rem;color:var(--texto-s)">Dia do envio automático</td>
+          </tr>
+          <tr>
+            <td>Lembrete semanal — hora</td>
+            <td><input id="cfg-lembrete_hora" placeholder="15" type="number" min="0" max="23" style="max-width:80px"></td>
+            <td style="font-size:.82rem;color:var(--texto-s)">Hora (0–23, fuso de Bahia)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="info-box" style="margin-top:14px">
+        <strong>Nota:</strong> A pontuação aparece automaticamente em todos os PDFs de planejamento trimestral. Após alterar, os PDFs novos já usarão os novos valores.
+      </div>
+      <div class="acoes-form">
+        <button class="btn btn-primario" onclick="salvarCfgPontuacao()">💾 Salvar pontuação</button>
+      </div>
+    </div>
+
+    <!-- ABA: BNCC -->
+    <div class="cfg-painel" id="cfg-bncc">
+      <div class="form-subtitulo" style="margin-bottom:16px;border:none;padding:0">
+        <span>Importe habilidades diretamente da base oficial do MEC via API bncc.ninja. As habilidades ficam armazenadas localmente na aba "BNCC" da planilha para uso offline.</span>
+      </div>
+
+      <div class="section-label">📥 Importar por componente</div>
+      <div class="campo-grid-3" style="margin-bottom:16px">
+        <div class="campo">
+          <label>Componente</label>
+          <select id="bncc-import-comp">
+            <option value="LP">Língua Portuguesa</option>
+            <option value="MA">Matemática</option>
+            <option value="CI">Ciências</option>
+            <option value="HI">História</option>
+            <option value="GE">Geografia</option>
+            <option value="AR">Arte</option>
+            <option value="EF">Educação Física</option>
+            <option value="LI">Língua Inglesa</option>
+            <option value="ER">Ensino Religioso</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Segmento</label>
+          <select id="bncc-import-seg">
+            <option value="EF1">Ensino Fund. Anos Iniciais (1º–5º)</option>
+            <option value="EF2" selected>Ensino Fund. Anos Finais (6º–9º)</option>
+            <option value="EM">Ensino Médio</option>
+          </select>
+        </div>
+        <div class="campo" style="justify-content:flex-end">
+          <label style="visibility:hidden">.</label>
+          <button class="btn btn-primario" onclick="importarBNCC()">📥 Importar da API</button>
+        </div>
+      </div>
+
+      <div class="section-label">🔍 Testar busca BNCC</div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <input type="text" id="bncc-test-query" placeholder="Digite código ou palavra-chave (ex: EF07MA)" style="flex:1;padding:9px 12px;border:1.5px solid var(--borda);border-radius:7px;font-size:.93rem;color:var(--texto);background:var(--card);outline:none">
+        <button class="btn btn-outline" onclick="testarBNCC()">🔍 Buscar</button>
+      </div>
+      <div id="bncc-test-resultado" style="display:none">
+        <div class="section-label">Resultados</div>
+        <div id="bncc-test-lista"></div>
+      </div>
+
+      <div class="section-label" style="margin-top:20px">📊 Status do banco local</div>
+      <div id="bncc-status-box" class="info-box">
+        Carregando informações do banco BNCC...
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ────── CALENDÁRIO ESCOLAR [F2-2] ────── -->
+<div id="pagina-calendario" style="display:none">
+  <div class="form-card">
+    <div class="form-titulo">📅 Calendário Escolar <span id="cal-ano-titulo"></span></div>
+    <div class="form-subtitulo"><span>Feriados, eventos e recessos. Gerencie os dados na aba "Calendario" da planilha.</span></div>
+
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="navegarMes(-1)">&#8249;</button>
+        <span class="cal-mes-label" id="cal-mes-label">—</span>
+        <button class="cal-nav-btn" onclick="navegarMes(1)">&#8250;</button>
+      </div>
+      <button class="btn btn-outline" style="padding:7px 16px;font-size:.85rem" onclick="carregarCalendario(true)">🔄 Atualizar</button>
+    </div>
+
+    <div class="cal-grid" id="cal-grid">
+      <div class="cal-dia-header">DOM</div>
+      <div class="cal-dia-header">SEG</div>
+      <div class="cal-dia-header">TER</div>
+      <div class="cal-dia-header">QUA</div>
+      <div class="cal-dia-header">QUI</div>
+      <div class="cal-dia-header">SEX</div>
+      <div class="cal-dia-header">SÁB</div>
+    </div>
+
+    <div class="cal-legenda">
+      <div class="cal-leg-item"><div class="cal-leg-cor" style="background:#fee2e2;border:1px solid #fca5a5"></div> Feriado</div>
+      <div class="cal-leg-item"><div class="cal-leg-cor" style="background:#fef9c3;border:1px solid #fde68a"></div> Recesso</div>
+      <div class="cal-leg-item"><div class="cal-leg-cor" style="background:#dbeafe;border:1px solid #93c5fd"></div> Evento escolar</div>
+      <div class="cal-leg-item"><div class="cal-leg-cor" style="background:#dcfce7;border:1px solid #86efac"></div> Letivo especial</div>
+      <div class="cal-leg-item"><div class="cal-leg-cor" style="background:var(--azul-l);border:1px solid var(--azul)"></div> Hoje</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ══ MODAL PRÉVIA ══════════════════════════════════ -->
+<div id="modal-previa">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>👁️ Prévia do documento</h3>
+      <button onclick="fecharPrevia()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="previa-doc" id="previa-conteudo"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secundario" onclick="fecharPrevia()">Fechar</button>
+      <button class="btn btn-outline"    onclick="imprimirPrevia()">🖨️ Imprimir</button>
+      <button class="btn btn-primario"   id="btn-confirmar-salvar">💾 Confirmar e Salvar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OVERLAY / TOAST ══════════════════════════════ -->
+<div id="overlay"><div class="spinner-box"><div class="spinner"></div><p id="overlay-msg">Aguarde…</p></div></div>
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════
+     JAVASCRIPT PRINCIPAL
+══════════════════════════════════════════════════════ -->
+<script>
+// ═══════════════════════════════════════════════════════
+// [V9] ANO_ATUAL declarado no TOPO para evitar ReferenceError
+// (temporal dead zone: const não pode ser usado antes da declaração)
+// ═══════════════════════════════════════════════════════
+const ANO_ATUAL = new Date().getFullYear();
+
+// ═══════════════════════════════════════════════════════
+// CADASTRO — professores, componentes, turmas
+// (Em produção estes dados vêm da função getCadastros() no Apps Script)
+// ═══════════════════════════════════════════════════════
+let CADASTROS = {
+  professores: [],
+  componentes: [],
+  turmas: []
+};
+
+function preencherSelects() {
+  const selProf  = ['t-professor','s-professor','a-professor','hist-professor'];
+  const selComp  = ['t-componente','s-componente','a-componente','coord-componente'];
+  const selTurma = ['t-anoturma','a-anoturma'];
+
+  selProf.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const atual = el.value;
+    el.innerHTML = '<option value="">— selecione —</option>';
+    CADASTROS.professores.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = p;
+      if (p === atual) opt.selected = true;
+      el.appendChild(opt);
+    });
+  });
+
+  selComp.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const placeholder = id === 'coord-componente' ? 'Todos os componentes' : '— selecione —';
+    const atual = el.value;
+    el.innerHTML = '<option value="">' + (placeholder) + '</option>';
+    CADASTROS.componentes.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = c;
+      if (c === atual) opt.selected = true;
+      el.appendChild(opt);
+    });
+  });
+
+  selTurma.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const atual = el.value;
+    el.innerHTML = '<option value="">— selecione —</option>';
+    CADASTROS.turmas.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = t;
+      if (t === atual) opt.selected = true;
+      el.appendChild(opt);
+    });
+  });
+
+  // Select múltiplo de turmas (semanal) — filtrado por atribuição do professor
+  const selTurmasS = document.getElementById('s-turmas');
+  if (selTurmasS) {
+    const atuais    = [...selTurmasS.selectedOptions].map(o => o.value);
+    const turmasDisp = _turmasParaPerfil();
+    selTurmasS.innerHTML = '';
+    turmasDisp.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = t;
+      if (atuais.includes(t)) opt.selected = true;
+      selTurmasS.appendChild(opt);
+    });
+  }
+
+  // [V8-1] Auto-preenche professor e filtra turmas/componentes após carregar perfil
+  _aplicarFiltroPerfil();
+}
+
+// [V8-1] Retorna turmas disponíveis para o perfil atual
+function _turmasParaPerfil() {
+  if (PERFIL_ATUAL.perfil === 'professor' && PERFIL_ATUAL.turmas && PERFIL_ATUAL.turmas.length > 0) {
+    return PERFIL_ATUAL.turmas; // só as turmas atribuídas
+  }
+  return CADASTROS.turmas || []; // coordenação/dev vê todas
+}
+
+// [V8-1] Retorna componentes disponíveis para o perfil atual
+function _componentesParaPerfil() {
+  if (PERFIL_ATUAL.perfil === 'professor' && PERFIL_ATUAL.componentes && PERFIL_ATUAL.componentes.length > 0) {
+    return PERFIL_ATUAL.componentes; // só os componentes atribuídos
+  }
+  return CADASTROS.componentes || [];
+}
+
+// [V8-1] Aplica filtros de perfil nos selects após perfil + cadastros carregados
+function _aplicarFiltroPerfil() {
+  if (!PERFIL_ATUAL.nome || PERFIL_ATUAL.perfil === 'dev') return;
+
+  const ehProf = PERFIL_ATUAL.perfil === 'professor';
+
+  // ── Professor fixo e bloqueado nos formulários ──────────────
+  if (ehProf) {
+    ['t-professor','s-professor','a-professor'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      // Se o select não tem a opção do professor, adiciona
+      if (![...el.options].some(o => o.value === PERFIL_ATUAL.nome)) {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = PERFIL_ATUAL.nome;
+        el.appendChild(opt);
+      }
+      el.value    = PERFIL_ATUAL.nome;
+      el.disabled = true; // professor não muda o próprio campo
+      el.style.opacity = '0.75';
+      el.title = 'Preenchido automaticamente com seu login';
+    });
+
+    // ── Filtra componentes para os atribuídos ao professor ──
+    const compsProfessor = _componentesParaPerfil();
+    ['t-componente','s-componente','a-componente'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const atual = el.value;
+      el.innerHTML = '<option value="">— selecione —</option>';
+      compsProfessor.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = c;
+        if (c === atual) opt.selected = true;
+        el.appendChild(opt);
+      });
+    });
+
+    // ── Filtra turmas para as atribuídas ao professor ────────
+    const turmasProfessor = _turmasParaPerfil();
+    ['t-anoturma','a-anoturma'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const atual = el.value;
+      el.innerHTML = '<option value="">— selecione —</option>';
+      turmasProfessor.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = t;
+        if (t === atual) opt.selected = true;
+        el.appendChild(opt);
+      });
+    });
+
+    // Turmas semanal (multi-select)
+    const selTurmaS = document.getElementById('s-turmas');
+    if (selTurmaS) {
+      const atuais = [...selTurmaS.selectedOptions].map(o => o.value);
+      selTurmaS.innerHTML = '';
+      turmasProfessor.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = t;
+        if (atuais.includes(t)) opt.selected = true;
+        selTurmaS.appendChild(opt);
+      });
+    }
+  }
+}
+
+// Carrega cadastros do backend (Apps Script)
+function carregarCadastros() {
+  if (typeof google === 'undefined') {
+    CADASTROS = {
+      professores: ['Ana Lima', 'Bruno Santos', 'Carla Oliveira', 'Marcos Rocha', 'Paula Mendes'],
+      componentes: ['Língua Portuguesa', 'Matemática', 'Ciências', 'História', 'Geografia', 'Arte', 'Educação Física', 'Inglês', 'Ensino Religioso'],
+      turmas: ['6ºA','6ºB','6ºC','6ºD','6ºE','6ºF','6ºG','6ºH',
+               '7ºA','7ºB','7ºC','7ºD','7ºE',
+               '8ºA','8ºB','8ºC','8ºD',
+               '9ºA','9ºB','9ºC']
+    };
+    preencherSelects();
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(dados => {
+      if (dados) {
+        CADASTROS = dados;
+        preencherSelects();
+        // [V8-1] Re-aplica filtro de perfil após cadastros chegarem
+        // (perfil pode ter chegado antes ou depois dos cadastros)
+        _aplicarFiltroPerfil();
+      }
+    })
+    .withFailureHandler(() => {})
+    .getCadastros();
+}
+
+// ═══════════════════════════════════════════════════════
+// MODO ESCURO
+// ═══════════════════════════════════════════════════════
+function alternarTema() {
+  const html = document.documentElement;
+  const escuro = html.getAttribute('data-tema') === 'escuro';
+  html.setAttribute('data-tema', escuro ? 'claro' : 'escuro');
+  document.getElementById('btn-tema').textContent = escuro ? '🌙' : '☀️';
+  try { localStorage.setItem('tema', escuro ? 'claro' : 'escuro'); } catch(e) {}
+}
+
+function restaurarTema() {
+  try {
+    const t = localStorage.getItem('tema');
+    if (t) {
+      document.documentElement.setAttribute('data-tema', t);
+      document.getElementById('btn-tema').textContent = t === 'escuro' ? '☀️' : '🌙';
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// [F2-4] PERFIS DE ACESSO
+// ═══════════════════════════════════════════════════════
+let PERFIL_ATUAL = { nome: '', email: '', perfil: 'dev' };
+
+function carregarPerfil() {
+  if (typeof google === 'undefined') {
+    PERFIL_ATUAL = {
+      nome: 'Professor Demo', email: 'demo@escola.edu.br', perfil: 'professor',
+      turmas: ['6ºA','7ºA'], componentes: ['Matemática']
+    };
+    _aplicarPerfil();
+    _aplicarFiltroPerfil(); // [V8-1]
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(p => {
+      PERFIL_ATUAL = p;
+      _aplicarPerfil();
+      _aplicarFiltroPerfil(); // [V8-1] re-aplica filtros com dados do perfil
+    })
+    .withFailureHandler(() => {})
+    .getPerfil();
+}
+
+// [V9-LOGOUT] Redireciona para a landing page via frame pai (_top)
+// window.location dentro do sandbox GAS é googleusercontent.com, não o /exec
+// por isso busca a URL real via google.script.run e navega com window.open(_top)
+function deslogar() {
+  google.script.run
+    .withSuccessHandler(function(url) { window.open(url, '_top'); })
+    .withFailureHandler(function()    { window.open(window.location.href.split('?app')[0], '_top'); })
+    .getExecUrl();
+}
+
+function _aplicarPerfil() {
+  const banner = document.getElementById('banner-perfil');
+  const nome   = document.getElementById('perfil-nome');
+  const badge  = document.getElementById('perfil-badge');
+  const email  = document.getElementById('perfil-email');
+  if (!banner) return;
+
+  nome.textContent  = PERFIL_ATUAL.nome || '—';
+  email.textContent = PERFIL_ATUAL.email || '';
+  badge.textContent = PERFIL_ATUAL.perfil === 'coordenacao' ? 'Coordenação'
+                    : PERFIL_ATUAL.perfil === 'professor'   ? 'Professor'
+                    : 'Visitante';
+  badge.className   = 'perfil-badge ' + (PERFIL_ATUAL.perfil || 'desconhecido');
+  banner.classList.add('visivel');
+
+  const ehProf   = PERFIL_ATUAL.perfil === 'professor';
+  const ehCoord  = PERFIL_ATUAL.perfil === 'coordenacao';
+  const ehDev    = PERFIL_ATUAL.perfil === 'dev';
+
+  // [V7-7] Pré-seleciona o professor nos formulários
+  if (ehProf && PERFIL_ATUAL.nome) {
+    ['t-professor','s-professor','a-professor'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) setTimeout(() => { if (!el.value) el.value = PERFIL_ATUAL.nome; }, 400);
+    });
+  }
+
+  // [V7-6] Oculta TOTALMENTE o painel de coordenação e configurações para professores
+  if (ehProf) {
+    ['nav-coordenacao','nav-configuracoes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    ['pagina-coordenacao','pagina-configuracoes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.remove(); // remove do DOM — não apenas esconde
+    });
+  }
+
+  // [V7-7] Exibe link da pasta pessoal no banner se professor
+  if (ehProf && PERFIL_ATUAL.pastaUrl) {
+    const linkPasta = document.createElement('a');
+    linkPasta.href    = PERFIL_ATUAL.pastaUrl;
+    linkPasta.target  = '_blank';
+    linkPasta.style.cssText = 'margin-left:auto;font-size:.75rem;color:var(--azul);font-weight:600;text-decoration:none';
+    linkPasta.textContent = '📁 Minha pasta no Drive';
+    banner.appendChild(linkPasta);
+  }
+
+  // Adiciona informativo de pasta para professor no resultado de salvar
+  if (ehProf && PERFIL_ATUAL.pastaUrl) {
+    ['t-resultado','s-resultado','a-resultado'].forEach(id => {
+      const box = document.getElementById(id);
+      if (!box) return;
+      const linkDiv = document.createElement('p');
+      linkDiv.style.marginTop = '6px';
+      linkDiv.innerHTML = '<a href="' + (PERFIL_ATUAL.pastaUrl) + '" target="_blank" style="color:var(--azul-m);font-size:.85rem">' + "\n" + '        📁 Ver todos os seus planejamentos no Drive' + "\n" + '      </a>';
+      box.appendChild(linkDiv);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// [F2-2] CALENDÁRIO ESCOLAR
+// ═══════════════════════════════════════════════════════
+let _calendarioDados = [];     // cache local dos eventos
+let _calAnoAtual  = ANO_ATUAL;
+let _calMesAtual  = new Date().getMonth(); // 0-based
+
+function carregarCalendario(forcar, silencioso) {
+  if (!forcar && _calendarioDados.length > 0) {
+    if (paginaAtual === 'calendario') _renderizarCalendario();
+    return;
+  }
+  if (typeof google === 'undefined') {
+    // Modo dev: dados simulados
+    _calendarioDados = [
+      { data: '01/01/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Confraternização Universal' },
+      { data: '21/04/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Tiradentes' },
+      { data: '01/05/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Dia do Trabalho' },
+      { data: '07/09/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Independência do Brasil' },
+      { data: '25/12/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Natal' },
+    ];
+    if (paginaAtual === 'calendario') _renderizarCalendario();
+    return;
+  }
+  if (!silencioso) mostrarOverlay('Carregando calendário…');
+  google.script.run
+    .withSuccessHandler(dados => {
+      if (!silencioso) esconderOverlay();
+      _calendarioDados = dados || [];
+      if (paginaAtual === 'calendario') _renderizarCalendario();
+    })
+    .withFailureHandler(e => {
+      if (!silencioso) { esconderOverlay(); toast('Erro ao carregar calendário: ' + e.message, 'erro'); }
+    })
+    .getCalendario();
+}
+
+function navegarMes(delta) {
+  _calMesAtual += delta;
+  if (_calMesAtual > 11) { _calMesAtual = 0;  _calAnoAtual++; }
+  if (_calMesAtual < 0)  { _calMesAtual = 11; _calAnoAtual--; }
+  _renderizarCalendario();
+}
+
+function _renderizarCalendario() {
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                 'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('cal-mes-label').textContent  = (meses[_calMesAtual]) + ' ' + (_calAnoAtual);
+  document.getElementById('cal-ano-titulo').textContent = _calAnoAtual;
+
+  // Mapa de eventos por data dd/MM/yyyy
+  const eventosPorData = {};
+  _calendarioDados.forEach(e => { eventosPorData[e.data] = e; });
+
+  const hoje    = new Date();
+  const hojeDDMM = (String(hoje.getDate()).padStart(2,'0')) + '/' + (String(hoje.getMonth()+1).padStart(2,'0')) + '/' + (hoje.getFullYear());
+
+  const primeiroDia  = new Date(_calAnoAtual, _calMesAtual, 1);
+  const ultimoDia    = new Date(_calAnoAtual, _calMesAtual + 1, 0);
+  const inicioGrid   = new Date(primeiroDia);
+  inicioGrid.setDate(inicioGrid.getDate() - primeiroDia.getDay()); // começa no domingo
+
+  const grid = document.getElementById('cal-grid');
+  // Mantém os 7 headers, remove células anteriores
+  while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  // Gera 6 semanas × 7 dias = 42 células
+  for (let i = 0; i < 42; i++) {
+    const dia  = new Date(inicioGrid);
+    dia.setDate(inicioGrid.getDate() + i);
+
+    const dd   = String(dia.getDate()).padStart(2,'0');
+    const mm   = String(dia.getMonth()+1).padStart(2,'0');
+    const yyyy = dia.getFullYear();
+    const chave = (dd) + '/' + (mm) + '/' + (yyyy);
+
+    const celula = document.createElement('div');
+    celula.className = 'cal-dia';
+
+    const outroMes = dia.getMonth() !== _calMesAtual || dia.getFullYear() !== _calAnoAtual;
+    if (outroMes) celula.classList.add('outro-mes');
+    if (chave === hojeDDMM) celula.classList.add('hoje');
+
+    const evento = eventosPorData[chave];
+    if (evento && !outroMes) {
+      const tipo = evento.tipo.toLowerCase().replace('_','-');
+      celula.classList.add(tipo);
+      celula.innerHTML = '<div class="cal-dia-num">' + (dia.getDate()) + '</div>' + "\n" + '        <div class="cal-evento-label">' + (esc(evento.descricao)) + '</div>';
+    } else {
+      celula.innerHTML = '<div class="cal-dia-num">' + (dia.getDate()) + '</div>';
+    }
+
+    grid.appendChild(celula);
+  }
+}
+
+// Retorna true se a data (Date) é feriado ou recesso
+function isDiaLetivo(dateObj) {
+  const dd  = String(dateObj.getDate()).padStart(2,'0');
+  const mm  = String(dateObj.getMonth()+1).padStart(2,'0');
+  const chave = (dd) + '/' + (mm) + '/' + (dateObj.getFullYear());
+  const ev  = _calendarioDados.find(e => e.data === chave);
+  return !ev || (ev.tipo !== 'FERIADO' && ev.tipo !== 'RECESSO');
+}
+
+// ═══════════════════════════════════════════════════════
+// [F2-3] AUTOCOMPLETE BNCC
+// ═══════════════════════════════════════════════════════
+let _bnccTimer = null;
+
+function _ativarAutocompleteBNCC(linhaId) {
+  const hab  = document.getElementById('hab-' + (linhaId));
+  const drop = document.getElementById('drop-' + (linhaId));
+  if (!hab || !drop) return;
+
+  hab.addEventListener('input', () => {
+    clearTimeout(_bnccTimer);
+    const q = hab.value.trim();
+    if (q.length < 2) { drop.classList.remove('aberto'); return; }
+    _bnccTimer = setTimeout(() => _buscarBNCC(q, linhaId), 350);
+  });
+
+  hab.addEventListener('keydown', e => {
+    if (e.key === 'Escape') drop.classList.remove('aberto');
+  });
+
+  document.addEventListener('click', e => {
+    if (!drop.contains(e.target) && e.target !== hab) drop.classList.remove('aberto');
+  }, { capture: true });
+}
+
+function _buscarBNCC(query, linhaId) {
+  const drop = document.getElementById('drop-' + (linhaId));
+  if (!drop) return;
+
+  if (typeof google === 'undefined') {
+    // Modo dev: filtro local com amostra
+    const amostra = [
+      { codigo:'EF07CI01', componente:'Ciências', segmento:'7º ano', descricao:'Classificar os seres vivos em grandes grupos.' },
+      { codigo:'EF07MA17', componente:'Matemática', segmento:'7º ano', descricao:'Calcular a probabilidade de eventos.' },
+      { codigo:'EF07LP01', componente:'Língua Portuguesa', segmento:'7º ano', descricao:'Identificar recursos expressivos para persuasão.' },
+    ];
+    const q = query.toLowerCase();
+    const res = amostra.filter(h => h.codigo.toLowerCase().includes(q) || h.descricao.toLowerCase().includes(q));
+    _renderDropBNCC(res, linhaId);
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(res => _renderDropBNCC(res || [], linhaId))
+    .withFailureHandler(() => {})
+    .buscarHabilidadesBNCC(query);
+}
+
+function _selecionarHabilidade(codigo, descricao, linhaId) {
+  const hab  = document.getElementById('hab-' + (linhaId));
+  const drop = document.getElementById('drop-' + (linhaId));
+  if (!hab) return;
+
+  // Adiciona ao valor do textarea (multilinhas)
+  const atual = hab.value.trim();
+  const entrada = (codigo) + ' — ' + (descricao);
+  hab.value = atual ? (atual) + '' + "\n" + '' + (entrada) : entrada;
+
+  drop.classList.remove('aberto');
+  hab.focus();
+  agendarAutoSave('trimestral');
+}
+
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// NAVEGAÇÃO (atualizada com calendário e perfis)
+// ═══════════════════════════════════════════════════════
+let paginaAtual = 'menu';
+
+function mostrarPagina(id) {
+  const ehCoord = PERFIL_ATUAL.perfil === 'coordenacao' || PERFIL_ATUAL.perfil === 'dev';
+
+  // Páginas restritas à coordenação
+  if (['coordenacao','configuracoes'].includes(id) && !ehCoord) {
+    toast('Acesso restrito à coordenação pedagógica.', 'erro');
+    return;
+  }
+
+  ['menu','trimestral','semanal','anual','calendario','historico',
+   'estatisticas','coordenacao','configuracoes'].forEach(p => {
+    const el = document.getElementById('pagina-' + p);
+    if (el) el.style.display = p === id ? '' : 'none';
+    const nav = document.getElementById('nav-' + p);
+    if (nav) nav.classList.toggle('ativo', p === id);
+  });
+  paginaAtual = id;
+
+  const comProgress = ['trimestral','semanal','anual'];
+  document.getElementById('barra-progresso-wrap').classList.toggle('visivel', comProgress.includes(id));
+  if (comProgress.includes(id)) atualizarProgresso();
+
+  if (id === 'calendario')    carregarCalendario();
+  if (id === 'coordenacao')   carregarPainel();
+  if (id === 'estatisticas')  _preencherSelectStats();
+  if (id === 'configuracoes') carregarConfiguracoes();
+}
+
+// ═══════════════════════════════════════════════════════
+// BARRA DE PROGRESSO
+// ═══════════════════════════════════════════════════════
+function atualizarProgresso() {
+  let campos = [], total = 0, preenchidos = 0;
+
+  if (paginaAtual === 'trimestral') {
+    campos = ['t-professor','t-componente','t-anoturma','t-trimestre'];
+    document.querySelectorAll('#t-linhas textarea').forEach(el => {
+      total++; if (el.value.trim()) preenchidos++;
+    });
+  } else if (paginaAtual === 'semanal') {
+    campos = ['s-professor','s-componente','s-inicio','s-fim'];
+    for (let r=0;r<4;r++) for (let c=0;c<5;c++) {
+      const el = document.getElementById('s-r' + (r) + 'c' + (c));
+      if (el) { total++; if (el.value.trim()) preenchidos++; }
+    }
+  } else if (paginaAtual === 'anual') {
+    campos = ['a-professor','a-componente','a-anoturma'];
+    document.querySelectorAll('#anual-meses textarea').forEach(el => {
+      total++; if (el.value.trim()) preenchidos++;
+    });
+  }
+
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    total++;
+    if (el && el.value && el.value !== '') preenchidos++;
+  });
+
+  const pct = total === 0 ? 0 : Math.round((preenchidos / total) * 100);
+  document.getElementById('barra-fill').style.width = pct + '%';
+  document.getElementById('barra-pct').textContent  = pct + '%';
+  document.getElementById('barra-label').textContent = 'Preenchimento: ' + (preenchidos) + '/' + (total) + ' campos';
+}
+
+// ═══════════════════════════════════════════════════════
+// AUTO-SAVE (localStorage)
+// ═══════════════════════════════════════════════════════
+// [BUG-5] CORRIGIDO: chaves de rascunho usam ano dinâmico
+// ANO_ATUAL declarado no topo do script (ver início do bloco <script>)
+const RASCUNHO_KEYS = {
+  trimestral: 'rascunho_trimestral_' + (ANO_ATUAL),
+  semanal:    'rascunho_semanal_' + (ANO_ATUAL),
+  anual:      'rascunho_anual_' + (ANO_ATUAL)
+};
+
+function salvarRascunho(tipo) {
+  try {
+    let dados;
+    if      (tipo === 'trimestral') dados = coletarDadosTrimestral();
+    else if (tipo === 'semanal')    dados = coletarDadosSemanal();
+    else if (tipo === 'anual')      dados = coletarDadosAnual();
+    if (dados) localStorage.setItem(RASCUNHO_KEYS[tipo], JSON.stringify(dados));
+  } catch(e) {}
+}
+
+function restaurarRascunho(tipo) {
+  try {
+    const raw = localStorage.getItem(RASCUNHO_KEYS[tipo]);
+    if (!raw) return;
+    const dados = JSON.parse(raw);
+    if (tipo === 'trimestral') preencherFormTrimestral(dados);
+    if (tipo === 'semanal')    preencherFormSemanal(dados);
+    if (tipo === 'anual')      preencherFormAnual(dados);
+  } catch(e) {}
+}
+
+function limparRascunho(tipo) {
+  try { localStorage.removeItem(RASCUNHO_KEYS[tipo]); } catch(e) {}
+}
+
+// Throttle de auto-save: salva 2 segundos após última alteração
+const autoSaveTimers = {};
+function agendarAutoSave(tipo) {
+  clearTimeout(autoSaveTimers[tipo]);
+  autoSaveTimers[tipo] = setTimeout(() => { salvarRascunho(tipo); atualizarProgresso(); }, 2000);
+}
+
+// [BUG-4] CORRIGIDO: cada formulário escuta apenas seu próprio container,
+// eliminando disparos desnecessários de outros campos (filtros do painel etc.)
+function ativarAutoSave(tipo) {
+  const container = document.getElementById('pagina-' + tipo);
+  if (!container) return;
+  container.addEventListener('input', () => agendarAutoSave(tipo));
+}
+
+// ═══════════════════════════════════════════════════════
+// TABELA TRIMESTRAL
+// ═══════════════════════════════════════════════════════
+let contLinha = 0;
+
+function adicionarLinhaTrimestral(dados) {
+  const id = contLinha++;
+  const tr = document.createElement('tr');
+  tr.id = 'linha-' + id;
+  // [F2-3] Campo de habilidades com autocomplete BNCC
+  tr.innerHTML = '' + "\n" + '    <td><textarea class="t-unidade" placeholder="Unidade temática...">' + (dados?.unidade||'') + '</textarea></td>' + "\n" + '    <td>' + "\n" + '      <div class="bncc-chips" id="chips-' + (id) + '"></div>' + "\n" + '      <div class="bncc-wrap">' + "\n" + '        <textarea class="t-habilidades" id="hab-' + (id) + '" placeholder="Digite o código BNCC (ex: EF07CI01) ou palavra-chave para buscar..." data-linha="' + (id) + '">' + (dados?.habilidades||'') + '</textarea>' + "\n" + '        <div class="bncc-dropdown" id="drop-' + (id) + '"></div>' + "\n" + '      </div>' + "\n" + '    </td>' + "\n" + '    <td><textarea class="t-metodologia" placeholder="Estratégias, recursos...">' + (dados?.metodologia||'') + '</textarea></td>' + "\n" + '    <td><textarea class="t-avaliacao" placeholder="Avaliação e pontuação...">' + (dados?.avaliacao||'') + '</textarea></td>' + "\n" + '    <td style="text-align:center;vertical-align:middle">' + "\n" + '      <button class="btn-remover-linha" data-linha-id="' + (id) + '" title="Remover">✕</button>' + "\n" + '    </td>';
+  document.getElementById('t-linhas').appendChild(tr);
+  
+  // Event listener para botão remover
+  const btnRemover = tr.querySelector('.btn-remover-linha');
+  if (btnRemover) {
+    btnRemover.addEventListener('click', function() {
+      removerLinha(parseInt(this.dataset.linhaId));
+    });
+  }
+
+  // Ativa autocomplete neste campo
+  _ativarAutocompleteBNCC(id);
+
+  // Restaura chips se houver dados
+  if (dados?.habilidades) {
+    const hab = document.getElementById('hab-' + (id));
+    if (hab) hab.value = dados.habilidades;
+  }
+}
+
+function removerLinha(id) {
+  const el = document.getElementById('linha-' + id);
+  if (el) el.remove();
+}
+
+function coletarDadosTrimestral() {
+  const linhas = [];
+  document.querySelectorAll('#t-linhas tr').forEach(tr => {
+    linhas.push({
+      unidade:     tr.querySelector('.t-unidade')?.value?.trim()     || '',
+      habilidades: tr.querySelector('.t-habilidades')?.value?.trim() || '',
+      metodologia: tr.querySelector('.t-metodologia')?.value?.trim() || '',
+      avaliacao:   tr.querySelector('.t-avaliacao')?.value?.trim()   || '',
+    });
+  });
+  return {
+    professor:  document.getElementById('t-professor').value.trim(),
+    componente: document.getElementById('t-componente').value.trim(),
+    anoTurma:   document.getElementById('t-anoturma').value.trim(),
+    trimestre:  document.getElementById('t-trimestre').value,
+    obs:        document.getElementById('t-obs').value.trim(),
+    linhas
+  };
+}
+
+function preencherFormTrimestral(d) {
+  if (!d) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('t-professor', d.professor);
+  set('t-componente', d.componente);
+  set('t-anoturma', d.anoTurma);
+  set('t-trimestre', d.trimestre);
+  set('t-obs', d.obs);
+  if (d.linhas && d.linhas.length) {
+    document.getElementById('t-linhas').innerHTML = '';
+    contLinha = 0;
+    d.linhas.forEach(l => adicionarLinhaTrimestral(l));
+  }
+}
+
+function limparTrimestral() {
+  if (!confirm('Limpar todos os campos do planejamento trimestral?')) return;
+  ['t-professor','t-componente','t-anoturma','t-obs'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('t-linhas').innerHTML = '';
+  contLinha = 0;
+  adicionarLinhaTrimestral(); adicionarLinhaTrimestral();
+  document.getElementById('t-resultado').classList.remove('visivel');
+  limparRascunho('trimestral');
+}
+
+// ═══════════════════════════════════════════════════════
+// TABELA SEMANAL
+// ═══════════════════════════════════════════════════════
+function coletarDadosSemanal() {
+  const semana = [0,1,2,3,4].map(col => ({
+    habilidade: document.getElementById('s-r0c' + (col))?.value?.trim() || '',
+    estrategia: document.getElementById('s-r1c' + (col))?.value?.trim() || '',
+    recursos:   document.getElementById('s-r2c' + (col))?.value?.trim() || '',
+    observacao: document.getElementById('s-r3c' + (col))?.value?.trim() || '',
+  }));
+  const datas = [0,1,2,3,4].map(i => {
+    const v = document.getElementById('s-d' + (i))?.value;
+    if (!v) return '';
+    const [y,m,d] = v.split('-'); return (d) + '/' + (m);
+  });
+  const turmasEl = document.getElementById('s-turmas');
+  const turmas = turmasEl ? [...turmasEl.selectedOptions].map(o => o.value).filter(Boolean).join(', ') : '';
+  return {
+    professor:    document.getElementById('s-professor').value.trim(),
+    componente:   document.getElementById('s-componente').value.trim(),
+    turmas,
+    mes:          document.getElementById('s-mes').value,
+    semanaInicio: formatarData(document.getElementById('s-inicio').value),
+    semanaFim:    formatarData(document.getElementById('s-fim').value),
+    obs:          document.getElementById('s-obs')?.value?.trim() || '',
+    datas, semana
+  };
+}
+
+function preencherFormSemanal(d) {
+  if (!d) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('s-professor', d.professor); set('s-componente', d.componente);
+  set('s-mes', d.mes); set('s-obs', d.obs);
+
+  // [BUG-5] CORRIGIDO: usa ANO_ATUAL em vez de string "2026" fixa
+  if (d.datas) d.datas.forEach((dt, i) => {
+    if (!dt) return;
+    const el = document.getElementById('s-d' + (i));
+    if (el && dt.includes('/')) {
+      const [dd, mm] = dt.split('/');
+      el.value = (ANO_ATUAL) + '-' + (mm.padStart(2,'0')) + '-' + (dd.padStart(2,'0'));
+    }
+  });
+  if (d.semana) d.semana.forEach((dia, c) => {
+    ['habilidade','estrategia','recursos','observacao'].forEach((campo, r) => {
+      const el = document.getElementById('s-r' + (r) + 'c' + (c));
+      if (el) el.value = dia[campo] || '';
+    });
+  });
+}
+
+function limparSemanal() {
+  if (!confirm('Limpar todos os campos do planejamento semanal?')) return;
+  ['s-professor','s-componente','s-inicio','s-fim','s-obs'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.querySelectorAll('.s-data').forEach(el => el.value = '');
+  for (let r=0;r<4;r++) for (let c=0;c<5;c++) {
+    const el = document.getElementById('s-r' + (r) + 'c' + (c)); if (el) el.value = '';
+  }
+  document.getElementById('s-resultado').classList.remove('visivel');
+  limparRascunho('semanal');
+}
+
+// DUPLICAR SEMANA ANTERIOR
+function duplicarSemana() {
+  try {
+    const raw = localStorage.getItem(RASCUNHO_KEYS['semanal']);
+    if (!raw) { toast('Nenhum rascunho semanal anterior encontrado.', 'aviso'); return; }
+    const dados = JSON.parse(raw);
+    // Limpa datas e observações, mantém conteúdo
+    dados.datas       = ['','','','',''];
+    dados.semanaInicio = '';
+    dados.semanaFim   = '';
+    dados.obs         = '';
+    preencherFormSemanal(dados);
+    // Avança as datas uma semana
+    const inicio = document.getElementById('s-inicio').value;
+    if (inicio) {
+      const d = new Date(inicio);
+      d.setDate(d.getDate() + 7);
+      const novaInicio = d.toISOString().split('T')[0];
+      document.getElementById('s-inicio').value = novaInicio;
+      const fim = new Date(d); fim.setDate(fim.getDate() + 4);
+      document.getElementById('s-fim').value = fim.toISOString().split('T')[0];
+    }
+    toast('Semana duplicada! Ajuste as datas e os conteúdos conforme necessário.', 'sucesso');
+  } catch(e) { toast('Erro ao duplicar semana: ' + e.message, 'erro'); }
+}
+
+// ═══════════════════════════════════════════════════════
+// PLANEJAMENTO ANUAL
+// ═══════════════════════════════════════════════════════
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const EMOJIS_MESES = ['❄️','🌱','🌸','🌿','🌻','☀️','🌤️','🍂','🍃','🎃','🎄','🎆'];
+
+function renderizarMesesAnuais() {
+  const wrap = document.getElementById('anual-meses');
+  wrap.innerHTML = '';
+  MESES.forEach((mes, i) => {
+    const div = document.createElement('div');
+    div.className = 'anual-mes-card';
+    div.innerHTML = '<h4>' + (EMOJIS_MESES[i]) + ' ' + (mes) + '</h4>' + "\n" + '      <textarea id="a-mes-' + (i) + '" placeholder="Conteúdos, unidades e habilidades previstas para ' + (mes) + '..."></textarea>';
+    wrap.appendChild(div);
+  });
+}
+
+function coletarDadosAnual() {
+  const meses = MESES.map((_, i) => document.getElementById('a-mes-' + (i))?.value?.trim() || '');
+  return {
+    professor:  document.getElementById('a-professor').value.trim(),
+    componente: document.getElementById('a-componente').value.trim(),
+    anoTurma:   document.getElementById('a-anoturma').value.trim(),
+    objetivo:   document.getElementById('a-objetivo').value.trim(),
+    bncc:       document.getElementById('a-bncc').value.trim(),
+    obs:        document.getElementById('a-obs').value.trim(),
+    meses
+  };
+}
+
+function preencherFormAnual(d) {
+  if (!d) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  set('a-professor',d.professor); set('a-componente',d.componente);
+  set('a-anoturma',d.anoTurma); set('a-objetivo',d.objetivo);
+  set('a-bncc',d.bncc); set('a-obs',d.obs);
+  if (d.meses) d.meses.forEach((v,i) => { const el = document.getElementById('a-mes-' + (i)); if (el) el.value = v; });
+}
+
+function limparAnual() {
+  if (!confirm('Limpar todos os campos do planejamento anual?')) return;
+  ['a-professor','a-componente','a-anoturma','a-objetivo','a-bncc','a-obs'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  MESES.forEach((_,i) => { const el = document.getElementById('a-mes-' + (i)); if (el) el.value = ''; });
+  document.getElementById('a-resultado').classList.remove('visivel');
+  limparRascunho('anual');
+}
+
+// ═══════════════════════════════════════════════════════
+// PRÉVIA DO PDF
+// ═══════════════════════════════════════════════════════
+let _tipoPrevia = '';
+
+function previaTrimestral() {
+  const d = coletarDadosTrimestral();
+  _tipoPrevia = 'trimestral';
+  const linhasHTML = (d.linhas||[]).map(l => '' + "\n" + '    <tr>' + "\n" + '      <td style="width:22%;background:#f7f9fc">' + (esc(l.unidade)) + '</td>' + "\n" + '      <td style="width:36%">' + (nl2br(esc(l.habilidades))) + '</td>' + "\n" + '      <td style="width:20%">' + (nl2br(esc(l.metodologia))) + '</td>' + "\n" + '      <td style="width:22%">' + (nl2br(esc(l.avaliacao))) + '</td>' + "\n" + '    </tr>').join('');
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Ano/Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ' + (esc(d.trimestre)) + ' TRIMESTRE 2026</div>' + "\n" + '    <table><thead><tr>' + "\n" + '      <th>UNIDADE TEMÁTICA / OBJETOS DE CONHECIMENTO</th>' + "\n" + '      <th>HABILIDADES</th><th>METODOLOGIA / RECURSOS</th><th>AVALIAÇÃO</th>' + "\n" + '    </tr></thead><tbody>' + (linhasHTML) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
+  document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarTrimestral(); };
+  abrirPrevia();
+}
+
+function previaSemanal() {
+  const d = coletarDadosSemanal();
+  _tipoPrevia = 'semanal';
+  const campos = ['habilidade','estrategia','recursos','observacao'];
+  const labels = ['HABILIDADE','ESTRATÉGIA','RECURSOS','OBSERVAÇÃO'];
+  const headerDias = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira']
+    .map((dia, i) => '<th>' + (dia) + '<br><small>' + (d.datas&&d.datas[i]?d.datas[i]:'') + '</small>').join('');
+  const linhas = campos.map((campo, ci) => {
+    const cols = [0,1,2,3,4].map(di => '<td>' + (nl2br(esc(d.semana&&d.semana[di]?d.semana[di][campo]:'' ))) + '</td>').join('');
+    return '<tr><th style="background:#2c5282;color:#fff;font-size:8pt;width:80px">' + (labels[ci]) + '</th>' + (cols) + '</tr>';
+  }).join('');
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turmas:</strong> ' + (esc(d.turmas)) + '</span>' + "\n" + '      <span><strong>Mês:</strong> ' + (esc(d.mes)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO SEMANAL – ' + (esc(d.semanaInicio)) + ' até ' + (esc(d.semanaFim)) + '</div>' + "\n" + '    <table><thead><tr><th style="width:80px"></th>' + (headerDias) + '</tr></thead><tbody>' + (linhas) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do Professor</div>' + "\n" + '      <div class="ass">Assinatura do Coordenador Pedagógico</div>' + "\n" + '    </div>';
+  document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarSemanal(); };
+  abrirPrevia();
+}
+
+function previaAnual() {
+  const d = coletarDadosAnual();
+  _tipoPrevia = 'anual';
+  const linhasMeses = MESES.map((mes,i) => '<tr><td style="width:15%;background:#f7f9fc;font-weight:bold">' + (mes) + '</td><td>' + (nl2br(esc(d.meses[i]||''))) + '</td></tr>').join('');
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ANUAL ' + (ANO_ATUAL) + '</div>' + "\n" + '    ' + (d.objetivo?'<p style="margin-bottom:6px;font-size:9pt"><strong>Objetivo Geral:</strong> ' + (esc(d.objetivo)) + '</p>':'') + '' + "\n" + '    ' + (d.bncc?'<p style="margin-bottom:8px;font-size:9pt"><strong>Competências BNCC:</strong> ' + (esc(d.bncc)) + '</p>':'') + '' + "\n" + '    <table><thead><tr><th style="width:15%">Mês</th><th>Conteúdos / Unidades / Habilidades</th></tr></thead>' + "\n" + '    <tbody>' + (linhasMeses) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc" style="margin-top:24px">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
+  document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarAnual(); };
+  abrirPrevia();
+}
+
+function abrirPrevia() { document.getElementById('modal-previa').classList.add('aberto'); }
+function fecharPrevia() { document.getElementById('modal-previa').classList.remove('aberto'); }
+function imprimirPrevia() {
+  const conteudo = document.getElementById('previa-conteudo').innerHTML;
+  const win = window.open('', '_blank');
+  win.document.write('<html><head><title>Prévia</title>' + "\n" + '    <style>' + "\n" + '      @page{size:A4 landscape;margin:15mm 12mm}' + "\n" + '      body{font-family:Arial,sans-serif;font-size:10pt;margin:0;padding:12mm}' + "\n" + '      table{width:100%;border-collapse:collapse;table-layout:fixed}' + "\n" + '      th{background:#1a3a6b;color:white;padding:6px 8px;text-align:left;word-break:break-word;overflow-wrap:break-word}' + "\n" + '      td{border:1pt solid #aaa;padding:6px 8px;vertical-align:top;word-break:break-word;overflow-wrap:break-word}' + "\n" + '      p{word-break:break-word;overflow-wrap:break-word}' + "\n" + '      .cab-escola{text-align:center;font-size:12pt;font-weight:bold;margin-bottom:4px}' + "\n" + '      .cab-end{text-align:center;font-size:8pt;color:#555;margin-bottom:8px}' + "\n" + '      .linha-id{display:flex;gap:20px;border-top:1pt solid #000;border-bottom:1pt solid #000;padding:4px 0;font-size:9pt;flex-wrap:wrap}' + "\n" + '      .titulo-doc{text-align:center;font-weight:bold;font-size:11pt;text-decoration:underline;margin:8px 0}' + "\n" + '      .rodape-doc{display:flex;justify-content:space-between;margin-top:16px;font-size:9pt}' + "\n" + '      .ass{border-top:1pt solid #000;padding-top:2px;min-width:200px;text-align:center}' + "\n" + '    </style></head><body>' + (conteudo) + '</body></html>');
+  win.document.close();
+  win.print();
+}
+
+// ═══════════════════════════════════════════════════════
+// IMPRIMIR FORMULÁRIO ATUAL
+// ═══════════════════════════════════════════════════════
+function imprimirAtual() {
+  if (paginaAtual === 'trimestral') { previaTrimestral(); setTimeout(imprimirPrevia, 300); }
+  else if (paginaAtual === 'semanal') { previaSemanal(); setTimeout(imprimirPrevia, 300); }
+  else if (paginaAtual === 'anual')  { previaAnual(); setTimeout(imprimirPrevia, 300); }
+  else toast('Abra um formulário para imprimir.', 'aviso');
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORTAR PARA GOOGLE DOCS
+// ═══════════════════════════════════════════════════════
+function exportarDocs(tipo) {
+  let dados;
+  if      (tipo === 'trimestral') dados = coletarDadosTrimestral();
+  else if (tipo === 'semanal')    dados = coletarDadosSemanal();
+  else if (tipo === 'anual')      dados = coletarDadosAnual();
+  if (!dados) return;
+
+  if (!validar(dados, ['professor','componente'])) return;
+  mostrarOverlay('Criando Google Docs…');
+
+  google.script.run
+    .withSuccessHandler(resultado => {
+      esconderOverlay();
+      if (resultado.sucesso) {
+        toast('Google Doc criado! Abrindo…', 'sucesso');
+        window.open(resultado.url, '_blank');
+      } else {
+        toast('Erro ao exportar: ' + resultado.erro, 'erro');
+      }
+    })
+    .withFailureHandler(err => { esconderOverlay(); toast('Erro: ' + err.message, 'erro'); })
+    .exportarParaDocs({ tipo, dados });
+}
+
+// [BUG-6] CORRIGIDO: flag global impede duplo clique / chamadas simultâneas
+let _salvando = false;
+
+function _bloquearBotoes(bloquear) {
+  document.querySelectorAll('.btn-primario').forEach(btn => {
+    btn.disabled = bloquear;
+    btn.style.opacity = bloquear ? '0.55' : '';
+    btn.style.cursor  = bloquear ? 'not-allowed' : '';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// SALVAR PDFs (chamadas ao Apps Script)
+// ═══════════════════════════════════════════════════════
+function salvarTrimestral() {
+  if (_salvando) return;
+  const dados = coletarDadosTrimestral();
+  if (!validar(dados, ['professor','componente'])) return;
+  _salvando = true; _bloquearBotoes(true);
+
+  _salvarComFallbackOffline('trimestral', dados, () => {
+    mostrarOverlay('Gerando PDF trimestral…');
+    google.script.run
+      .withSuccessHandler(r => {
+        esconderOverlay(); _salvando = false; _bloquearBotoes(false);
+        if (r.sucesso) {
+          document.getElementById('t-link-pdf').href = r.url;
+          document.getElementById('t-link-pdf').textContent = '📄 ' + r.nome;
+          document.getElementById('t-resultado').classList.add('visivel');
+          _mostrarQR('t', r.urlVerif);            // [F4-2]
+          limparRascunho('trimestral');
+          toast('PDF salvo com sucesso!', 'sucesso');
+          enviarEmailConfirmacao(dados.professor, 'Trimestral', r.url);
+        } else { toast('Erro: ' + r.erro, 'erro'); }
+      })
+      .withFailureHandler(e => { esconderOverlay(); _salvando = false; _bloquearBotoes(false); toast('Erro: ' + e.message, 'erro'); })
+      .salvarTrimestral(dados);
+  });
+}
+
+function salvarSemanal() {
+  if (_salvando) return;
+  const dados = coletarDadosSemanal();
+  if (!validar(dados, ['professor','componente'])) return;
+  _salvando = true; _bloquearBotoes(true);
+
+  _salvarComFallbackOffline('semanal', dados, () => {
+    mostrarOverlay('Gerando PDF semanal…');
+    google.script.run
+      .withSuccessHandler(r => {
+        esconderOverlay(); _salvando = false; _bloquearBotoes(false);
+        if (r.sucesso) {
+          document.getElementById('s-link-pdf').href = r.url;
+          document.getElementById('s-link-pdf').textContent = '📄 ' + r.nome;
+          document.getElementById('s-resultado').classList.add('visivel');
+          _mostrarQR('s', r.urlVerif);            // [F4-2]
+          limparRascunho('semanal');
+          toast('PDF salvo com sucesso!', 'sucesso');
+          enviarEmailConfirmacao(dados.professor, 'Semanal', r.url);
+        } else { toast('Erro: ' + r.erro, 'erro'); }
+      })
+      .withFailureHandler(e => { esconderOverlay(); _salvando = false; _bloquearBotoes(false); toast('Erro: ' + e.message, 'erro'); })
+      .salvarSemanal(dados);
+  });
+}
+
+function salvarAnual() {
+  if (_salvando) return;
+  const dados = coletarDadosAnual();
+  if (!validar(dados, ['professor','componente'])) return;
+  _salvando = true; _bloquearBotoes(true);
+
+  _salvarComFallbackOffline('anual', dados, () => {
+    mostrarOverlay('Gerando PDF anual…');
+    google.script.run
+      .withSuccessHandler(r => {
+        esconderOverlay(); _salvando = false; _bloquearBotoes(false);
+        if (r.sucesso) {
+          document.getElementById('a-link-pdf').href = r.url;
+          document.getElementById('a-link-pdf').textContent = '📄 ' + r.nome;
+          document.getElementById('a-resultado').classList.add('visivel');
+          _mostrarQR('a', r.urlVerif);            // [F4-2]
+          limparRascunho('anual');
+          toast('PDF salvo com sucesso!', 'sucesso');
+          enviarEmailConfirmacao(dados.professor, 'Anual', r.url);
+        } else { toast('Erro: ' + r.erro, 'erro'); }
+      })
+      .withFailureHandler(e => { esconderOverlay(); _salvando = false; _bloquearBotoes(false); toast('Erro: ' + e.message, 'erro'); })
+      .salvarAnual(dados);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// NOTIFICAÇÃO POR E-MAIL (dispara via Apps Script)
+// ═══════════════════════════════════════════════════════
+function enviarEmailConfirmacao(professor, tipo, urlPDF) {
+  if (typeof google === 'undefined') return;
+  google.script.run.enviarEmailConfirmacao({ professor, tipo, urlPDF });
+}
+
+// ═══════════════════════════════════════════════════════
+// [F3-3] GRÁFICOS DO PAINEL — Chart.js
+// ═══════════════════════════════════════════════════════
+let _chartMeses, _chartTipos, _chartCobertura, _chartTop5;
+let _chartjsCarregado = false;
+
+function _carregarChartJS(callback) {
+  if (_chartjsCarregado) { callback(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js';
+  s.onload = () => { _chartjsCarregado = true; callback(); };
+  document.head.appendChild(s);
+}
+
+function carregarGraficos() {
+  _carregarChartJS(() => {
+    if (typeof google === 'undefined') {
+      // Modo dev: dados simulados
+      _renderizarGraficos({
+        sucesso: true,
+        meses: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+        porMes: [2,5,8,11,9,3,0,0,0,0,0,0],
+        porTipo: { Trimestral:12, Semanal:28, Anual:5 },
+        comPlano: 7, semPlano: 2,
+        top5: [
+          {nome:'Ana', total:8},{nome:'Bruno', total:6},{nome:'Carla', total:5},
+          {nome:'Marcos', total:4},{nome:'Paula', total:3},
+        ],
+      });
+      return;
+    }
+    google.script.run
+      .withSuccessHandler(dados => { if (dados && dados.sucesso) _renderizarGraficos(dados); })
+      .withFailureHandler(() => {})
+      .getDadosGraficos();
+  });
+}
+
+function _renderizarGraficos(d) {
+  const azul = '#1a3a6b', azulL = '#4a7fc1', verde = '#2d7a4f', laranja = '#d97706', vermelho = '#c0392b';
+
+  // Destrói gráficos anteriores para evitar sobreposição
+  [_chartMeses, _chartTipos, _chartCobertura, _chartTop5].forEach(c => { try { c && c.destroy(); } catch(e){} });
+
+  const opts = (extra) => ({
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    ...extra
+  });
+
+  // 1 — Entregas por mês
+  const ctxM = document.getElementById('grafico-meses');
+  if (ctxM) _chartMeses = new Chart(ctxM, {
+    type: 'bar',
+    data: {
+      labels: d.meses,
+      datasets: [{ data: d.porMes, backgroundColor: azul, borderRadius: 4, borderSkipped: false }]
+    },
+    options: { ...opts(), scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+
+  // 2 — Por tipo (donut)
+  const ctxT = document.getElementById('grafico-tipos');
+  if (ctxT) _chartTipos = new Chart(ctxT, {
+    type: 'doughnut',
+    data: {
+      labels: ['Trimestral', 'Semanal', 'Anual'],
+      datasets: [{ data: [d.porTipo.Trimestral, d.porTipo.Semanal, d.porTipo.Anual],
+        backgroundColor: [azul, verde, laranja], borderWidth: 2 }]
+    },
+    options: { ...opts(), plugins: { legend: { display: true, position: 'bottom',
+      labels: { font: { size: 11 }, padding: 12 } } } }
+  });
+
+  // 3 — Cobertura (pizza)
+  const ctxC = document.getElementById('grafico-cobertura');
+  if (ctxC) _chartCobertura = new Chart(ctxC, {
+    type: 'pie',
+    data: {
+      labels: ['Com plano', 'Sem plano'],
+      datasets: [{ data: [d.comPlano, d.semPlano],
+        backgroundColor: [verde, vermelho], borderWidth: 2 }]
+    },
+    options: { ...opts(), plugins: { legend: { display: true, position: 'bottom',
+      labels: { font: { size: 11 }, padding: 12 } } } }
+  });
+
+  // 4 — Top 5 (barra horizontal)
+  const ctxP = document.getElementById('grafico-top5');
+  if (ctxP) _chartTop5 = new Chart(ctxP, {
+    type: 'bar',
+    data: {
+      labels: d.top5.map(p => p.nome),
+      datasets: [{ data: d.top5.map(p => p.total),
+        backgroundColor: azulL, borderRadius: 4, borderSkipped: false }]
+    },
+    options: { ...opts(), indexAxis: 'y',
+      scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// [F3-1] FLUXO DE APROVAÇÃO
+// ═══════════════════════════════════════════════════════
+let _aprovacaoPayload = {};
+
+function abrirModalAprovacao(tipo, professor, componente, periodo, url) {
+  _aprovacaoPayload = { tipo, professor, componente, periodo, urlPDF: url };
+  document.getElementById('aprov-info-titulo').textContent  = (professor) + ' — ' + (componente);
+  document.getElementById('aprov-info-detalhe').textContent = 'Tipo: ' + (tipo) + ' | Período: ' + (periodo);
+  document.getElementById('aprov-decisao').value    = 'APROVADO';
+  document.getElementById('aprov-comentario').value = '';
+  document.getElementById('modal-aprovacao').classList.add('aberto');
+}
+
+function fecharModalAprovacao() {
+  document.getElementById('modal-aprovacao').classList.remove('aberto');
+  _aprovacaoPayload = {};
+}
+
+function confirmarAprovacao() {
+  const decisao    = document.getElementById('aprov-decisao').value;
+  const comentario = document.getElementById('aprov-comentario').value.trim();
+  if (!_aprovacaoPayload.professor) return;
+
+  mostrarOverlay('Salvando decisão…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay(); fecharModalAprovacao();
+      if (r.sucesso) {
+        toast('Decisão registrada e professor notificado!', 'sucesso');
+        carregarPainel(true);
+      } else { toast('Erro: ' + r.erro, 'erro'); }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .salvarAprovacao({ ..._aprovacaoPayload, decisao, comentario });
+}
+
+// ═══════════════════════════════════════════════════════
+// [F3-4] ESTATÍSTICAS PESSOAIS
+// ═══════════════════════════════════════════════════════
+function _preencherSelectStats() {
+  const sel = document.getElementById('stats-professor');
+  if (!sel || sel.options.length > 1) return;
+  if (CADASTROS.professores) {
+    CADASTROS.professores.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = p;
+      sel.appendChild(opt);
+    });
+  }
+  // Se professor logado, pré-seleciona
+  if (PERFIL_ATUAL.perfil === 'professor' && PERFIL_ATUAL.nome) {
+    sel.value = PERFIL_ATUAL.nome;
+    carregarEstatisticas();
+  }
+}
+
+function carregarEstatisticas() {
+  const professor = document.getElementById('stats-professor').value;
+  const conteudo  = document.getElementById('stats-conteudo');
+  const vazio     = document.getElementById('stats-vazio');
+
+  if (!professor) {
+    conteudo.style.display = 'none'; vazio.style.display = '';
+    return;
+  }
+
+  mostrarOverlay('Carregando estatísticas…');
+  google.script.run
+    .withSuccessHandler(dados => {
+      esconderOverlay();
+      if (!dados || !dados.sucesso) { toast('Erro ao carregar estatísticas.', 'erro'); return; }
+
+      document.getElementById('stats-seq').textContent        = dados.sequenciaAtual || 0;
+      document.getElementById('stats-trimestral').textContent  = dados.totalTrimestral || 0;
+      document.getElementById('stats-semanal').textContent     = dados.totalSemanal    || 0;
+      document.getElementById('stats-anual').textContent       = dados.totalAnual      || 0;
+      document.getElementById('stats-aprovados').textContent   = dados.aprovados       || 0;
+
+      // Histórico de aprovações recebidas
+      _renderizarAprovacoesProfessor(professor);
+
+      conteudo.style.display = ''; vazio.style.display = 'none';
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .getEstatisticasProfessor(professor);
+}
+
+function _renderizarAprovacoesProfessor(professor) {
+  const lista = document.getElementById('stats-aprovacoes-lista');
+  if (!lista) return;
+
+  google.script.run
+    .withSuccessHandler(aprovacoes => {
+      if (!aprovacoes || aprovacoes.length === 0) {
+        lista.innerHTML = '<div class="historico-vazio">Nenhuma aprovação registrada ainda.</div>';
+        return;
+      }
+      lista.innerHTML = aprovacoes.map(a => {
+        const cls  = a.decisao === 'APROVADO' ? 'aprovado' : 'revisao';
+        const icon = a.decisao === 'APROVADO' ? '✅' : '🔄';
+        return '<div class="historico-item">' + "\n" + '          <div class="historico-info">' + "\n" + '            <strong>' + (icon) + ' ' + (a.componente) + ' — ' + (a.periodo) + '</strong>' + "\n" + '            <span>' + (a.data) + (a.comentario ? ' · "' + esc(a.comentario) + '"' : '') + '</span>' + "\n" + '          </div>' + "\n" + '          <span class="status-aprovacao ' + (cls) + '">' + (a.decisao === 'APROVADO' ? 'Aprovado' : 'Revisão solicitada') + '</span>' + "\n" + '        </div>';
+      }).join('');
+    })
+    .withFailureHandler(() => {})
+    .getAprovacoes(professor);
+}
+
+// ═══════════════════════════════════════════════════════
+// [F3-2] EDITAR PLANEJAMENTO SALVO
+// ═══════════════════════════════════════════════════════
+function carregarHistorico() {
+  const professor = document.getElementById('hist-professor').value;
+  const tipo      = document.getElementById('hist-tipo').value;
+  const busca     = document.getElementById('hist-busca').value.toLowerCase();
+  const lista     = document.getElementById('historico-lista');
+
+  if (!professor) {
+    lista.innerHTML = '<div class="historico-vazio">Selecione um professor para ver o histórico.</div>';
+    return;
+  }
+
+  mostrarOverlay('Buscando histórico…');
+  google.script.run
+    .withSuccessHandler(registros => {
+      esconderOverlay();
+      if (!registros || registros.length === 0) {
+        lista.innerHTML = '<div class="historico-vazio">Nenhum planejamento encontrado.</div>';
+        return;
+      }
+      const filtrados = registros.filter(r =>
+        (!tipo  || r.tipo === tipo) &&
+        (!busca || (r.componente||'').toLowerCase().includes(busca))
+      );
+      if (filtrados.length === 0) {
+        lista.innerHTML = '<div class="historico-vazio">Nenhum resultado para os filtros aplicados.</div>';
+        return;
+      }
+      lista.innerHTML = filtrados.map(r => {
+        const podeEditar = PERFIL_ATUAL.perfil === 'professor' || PERFIL_ATUAL.perfil === 'dev';
+        const podeAprovar = PERFIL_ATUAL.perfil === 'coordenacao' || PERFIL_ATUAL.perfil === 'dev';
+        const periodo = r.trimestre ? (r.trimestre) + 'º Tri' : r.semanaInicio ? 'Semana ' + (r.semanaInicio) : '';
+        return '<div class="historico-item">' + "\n" + '          <div class="historico-info">' + "\n" + '            <strong>' + (r.tipo) + ' — ' + (r.componente||'') + (r.anoTurma ? ' / ' + r.anoTurma : '') + '</strong>' + "\n" + '            <span>📅 ' + (r.data) + ' ' + (periodo) + '</span>' + "\n" + '          </div>' + "\n" + '          <div class="historico-item-acoes">' + "\n" + '            ' + (r.url ? '<a href="' + (r.url) + '" target="_blank" class="btn-editar" style="text-decoration:none">📄 Ver PDF</a>' : '') + '' + "\n" + '            ' + (podeEditar && r.linhaIdx ? '<button class="btn-editar" data-tipo="' + (r.tipo) + '" data-linha-idx="' + (r.linhaIdx) + '">✏️ Editar</button>' : '') + '' + "\n" + '            ' + (podeAprovar && r.linhaIdx ? '<button class="btn-aprovar" data-tipo="' + (r.tipo) + '" data-professor="' + (esc(r.professor)) + '" data-componente="' + (esc(r.componente||'')) + '" data-periodo="' + (esc(periodo)) + '" data-url="' + (esc(r.url||'')) + '">✍️ Avaliar</button>' : '') + '' + "\n" + '          </div>' + "\n" + '        </div>';
+      }).join('');
+      
+      // Event delegation para botões
+      setTimeout(() => {
+        lista.querySelectorAll('.btn-editar[data-tipo]').forEach(btn => {
+          btn.addEventListener('click', function() {
+            editarPlanejamento(this.dataset.tipo, parseInt(this.dataset.linhaIdx));
+          });
+        });
+        lista.querySelectorAll('.btn-aprovar').forEach(btn => {
+          btn.addEventListener('click', function() {
+            abrirModalAprovacao(this.dataset.tipo, this.dataset.professor, this.dataset.componente, this.dataset.periodo, this.dataset.url);
+          });
+        });
+      }, 0);
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro ao buscar histórico: ' + e.message, 'erro'); })
+    .getHistoricoComLinhas(professor);
+}
+
+function editarPlanejamento(tipo, linhaIdx) {
+  if (!confirm('Isso vai carregar os dados deste planejamento no formulário para edição. Continuar?')) return;
+  mostrarOverlay('Carregando planejamento para edição…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (!r.sucesso) { toast('Erro: ' + r.erro, 'erro'); return; }
+      const d = r.dados;
+      if (tipo === 'Trimestral') {
+        mostrarPagina('trimestral');
+        setTimeout(() => { preencherFormTrimestral(d); toast('Planejamento carregado — faça os ajustes e salve uma nova versão.', 'aviso'); }, 200);
+      } else if (tipo === 'Semanal') {
+        mostrarPagina('semanal');
+        setTimeout(() => { preencherFormSemanal(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200);
+      } else {
+        mostrarPagina('anual');
+        setTimeout(() => { preencherFormAnual(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200);
+      }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .carregarParaEdicao(tipo, linhaIdx);
+}
+
+// ═══════════════════════════════════════════════════════
+// CARREGAR PAINEL — atualiza gráficos também
+// ═══════════════════════════════════════════════════════
+let _cachePainel = null;
+let _cachePainelTs = 0;
+const CACHE_PAINEL_MS = 5 * 60 * 1000;
+
+function carregarPainel(forcarAtualizar) {
+  const agora = Date.now();
+  if (!forcarAtualizar && _cachePainel && (agora - _cachePainelTs) < CACHE_PAINEL_MS) {
+    _renderizarPainel(_cachePainel);
+    toast('Painel em cache — atualizado às ' + (_cachePainel.geradoEm || ''), 'aviso');
+    return;
+  }
+
+  const trimestre  = document.getElementById('coord-trimestre').value;
+  const componente = document.getElementById('coord-componente').value;
+  const busca      = document.getElementById('coord-busca').value.toLowerCase();
+
+  mostrarOverlay('Carregando painel…');
+  google.script.run
+    .withSuccessHandler(dados => {
+      esconderOverlay();
+      if (!dados) return;
+      _cachePainel   = dados;
+      _cachePainelTs = Date.now();
+      _renderizarPainel(dados, trimestre, componente, busca);
+      // [F3-3] Carrega gráficos em paralelo
+      carregarGraficos();
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro ao carregar painel: ' + e.message, 'erro'); })
+    .getDadosPainel();
+}
+
+function _renderizarPainel(dados, trimestre, componente, busca) {
+  trimestre  = trimestre  || document.getElementById('coord-trimestre').value;
+  componente = componente || document.getElementById('coord-componente').value;
+  busca      = busca      || document.getElementById('coord-busca').value.toLowerCase();
+
+  document.getElementById('kpi-entregues').textContent   = dados.totalEntregues  || 0;
+  document.getElementById('kpi-pendentes').textContent   = dados.totalPendentes  || 0;
+  document.getElementById('kpi-professores').textContent = dados.totalProfessores || 0;
+  document.getElementById('kpi-semanais').textContent    = dados.semanaisNoMes   || 0;
+
+  const registros = (dados.registros || []).filter(r =>
+    (!trimestre  || (r.trimestre||'').includes(trimestre)) &&
+    (!componente || r.componente === componente) &&
+    (!busca      || (r.professor||'').toLowerCase().includes(busca))
+  );
+
+  const tbody = document.getElementById('painel-tbody');
+  if (registros.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--texto-s)">Nenhum registro encontrado.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = registros.map((r, idx) => {
+    const sc = r.status === 'Entregue' ? 'status-ok' : r.status === 'Atrasado' ? 'status-atrasado' : 'status-pend';
+    const periodo = r.trimestre || r.semanaInicio || '—';
+    const aprovBtn = '<button class="btn-aprovar" data-tipo="' + (esc(r.tipo)) + '" data-professor="' + (esc(r.professor)) + '" data-componente="' + (esc(r.componente)) + '" data-periodo="' + (esc(periodo)) + '" data-url="' + (esc(r.url||'')) + '">✍️ Avaliar</button>';
+    return '<tr>' + "\n" + '      <td>' + (r.professor||'—') + '</td>' + "\n" + '      <td>' + (r.componente||'—') + '</td>' + "\n" + '      <td>' + (r.tipo||'—') + '</td>' + "\n" + '      <td>' + (periodo) + '</td>' + "\n" + '      <td>' + (r.data||'—') + '</td>' + "\n" + '      <td><span class="status-badge ' + (sc) + '">' + (r.status||'—') + '</span></td>' + "\n" + '      <td>' + (aprovBtn) + '</td>' + "\n" + '      <td>' + (r.url ? '<a href="' + (r.url) + '" target="_blank">📄 Ver</a>' : '—') + '</td>' + "\n" + '    </tr>';
+  }).join('');
+  
+  // Event delegation para botões de aprovar
+  setTimeout(() => {
+    tbody.querySelectorAll('.btn-aprovar').forEach(btn => {
+      btn.addEventListener('click', function() {
+        abrirModalAprovacao(this.dataset.tipo, this.dataset.professor, this.dataset.componente, this.dataset.periodo, this.dataset.url);
+      });
+    });
+  }, 0);
+}
+
+function gerarRelatorioPendencias() {
+  mostrarOverlay('Gerando relatório de pendências…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r.sucesso) { toast('Relatório gerado!', 'sucesso'); window.open(r.url, '_blank'); }
+      else toast('Erro: ' + r.erro, 'erro');
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .gerarRelatorioPendencias();
+}
+
+function exportarPainelXLSX() {
+  mostrarOverlay('Exportando para XLSX…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r.sucesso) { toast('XLSX gerado!', 'sucesso'); window.open(r.url, '_blank'); }
+      else toast('Erro: ' + r.erro, 'erro');
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .exportarPainelXLSX();
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILITÁRIOS
+// ═══════════════════════════════════════════════════════
+// [BUG-5] CORRIGIDO: usa ANO_ATUAL em vez de string "2026" fixa
+function formatarData(v) {
+  if (!v) return '___/___/' + (ANO_ATUAL);
+  const [y,m,d] = v.split('-');
+  return (d) + '/' + (m) + '/' + (y);
+}
+
+function validar(dados, campos) {
+  for (const c of campos) {
+    if (!dados[c]) { toast('Preencha o campo obrigatório: ' + (c), 'erro'); return false; }
+  }
+  return true;
+}
+
+function mostrarOverlay(msg) {
+  document.getElementById('overlay-msg').textContent = msg || 'Aguarde…';
+  document.getElementById('overlay').classList.add('ativo');
+}
+function esconderOverlay() { document.getElementById('overlay').classList.remove('ativo'); }
+
+function toast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = tipo || '';
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function nl2br(str) { return str ? str.replace(/\n/g,'<br>') : ''; }
+
+// ═══════════════════════════════════════════════════════
+// DATAS SEMANAL — auto-preenche início/fim ao digitar dias
+// ═══════════════════════════════════════════════════════
+document.querySelectorAll('.s-data').forEach(el => {
+  el.addEventListener('change', () => {
+    const vals = [...document.querySelectorAll('.s-data')].map(e => e.value).filter(Boolean);
+    if (vals.length > 0) {
+      const sorted = vals.sort();
+      document.getElementById('s-inicio').value = sorted[0];
+      document.getElementById('s-fim').value = sorted[sorted.length-1];
+      // Auto-seleciona o mês correspondente
+      const [y,m] = sorted[0].split('-');
+      const nomeMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][parseInt(m)-1];
+      document.getElementById('s-mes').value = nomeMes;
+    }
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+// [F4-1] MODO OFFLINE COM FILA DE ENVIO
+// ═══════════════════════════════════════════════════════
+const FILA_KEY      = 'fila_offline_' + (ANO_ATUAL);
+let   _estaOnline   = navigator.onLine;
+
+function _lerFila()       { try { return JSON.parse(localStorage.getItem(FILA_KEY) || '[]'); } catch(e) { return []; } }
+function _gravarFila(f)   { try { localStorage.setItem(FILA_KEY, JSON.stringify(f)); } catch(e) {} }
+function _tamanhoFila()   { return _lerFila().length; }
+
+function _atualizarUIFila() {
+  const n     = _tamanhoFila();
+  const badge = document.getElementById('fila-badge');
+  const count = document.getElementById('offline-fila-count');
+  const num   = document.getElementById('fila-badge-num');
+
+  if (badge)  { badge.classList.toggle('visivel', n > 0 && _estaOnline); }
+  if (num)    { num.textContent = n; }
+  if (count)  { count.textContent = (n) + ' na fila'; count.style.display = n > 0 ? '' : 'none'; }
+}
+
+function _mostrarBannerOffline(online) {
+  const banner = document.getElementById('banner-offline');
+  const msg    = document.getElementById('banner-offline-msg');
+  if (!banner) return;
+
+  if (!online) {
+    banner.classList.add('visivel'); banner.classList.remove('online');
+    if (msg) msg.textContent = '📡 Sem conexão — planejamentos serão salvos localmente e enviados ao reconectar';
+    setTimeout(() => {}, 0);
+  } else if (_tamanhoFila() > 0) {
+    banner.classList.add('visivel', 'online');
+    if (msg) msg.textContent = '✅ Conexão restaurada! Clique no botão para enviar ' + (_tamanhoFila()) + ' planejamento(s) da fila.';
+    setTimeout(() => banner.classList.remove('visivel'), 8000);
+  } else {
+    banner.classList.remove('visivel');
+  }
+  _atualizarUIFila();
+}
+
+// Enfileira um planejamento para envio posterior
+function _enfileirarOffline(tipo, dados) {
+  const fila = _lerFila();
+  const id   = Date.now().toString(36);
+  fila.push({ id, tipo, dados, enfileiradoEm: new Date().toISOString() });
+  _gravarFila(fila);
+  _atualizarUIFila();
+  toast('Sem conexão — planejamento salvo localmente (' + (fila.length) + ' na fila).', 'aviso');
+}
+
+// Processa todos os itens da fila quando online
+function processarFilaOffline() {
+  const fila = _lerFila();
+  if (fila.length === 0) { toast('Fila vazia — nada a enviar.', 'aviso'); return; }
+  if (!navigator.onLine)  { toast('Ainda sem conexão. Aguarde.', 'erro'); return; }
+
+  mostrarOverlay('Enviando ' + (fila.length) + ' planejamento(s) da fila…');
+
+  google.script.run
+    .withSuccessHandler(resultados => {
+      esconderOverlay();
+      const filaAtual = _lerFila();
+      const idsOK     = new Set((resultados || []).filter(r => r.sucesso).map(r => r.id));
+      const restantes = filaAtual.filter(item => !idsOK.has(item.id));
+      _gravarFila(restantes);
+      _atualizarUIFila();
+
+      const ok = resultados.filter(r => r.sucesso).length;
+      const err = resultados.length - ok;
+      toast('Fila processada: ' + (ok) + ' enviado(s)' + (err ? ', ' + (err) + ' com erro (serão reaproveitados)' : '') + '.',
+            err === 0 ? 'sucesso' : 'aviso');
+
+      const banner = document.getElementById('banner-offline');
+      if (banner) banner.classList.remove('visivel');
+    })
+    .withFailureHandler(e => {
+      esconderOverlay();
+      toast('Erro ao processar fila: ' + e.message, 'erro');
+    })
+    .processarFilaOffline(fila);
+}
+
+// Wrappers das funções de salvar com detecção offline
+function _salvarComFallbackOffline(tipo, dados, fn) {
+  if (!navigator.onLine) {
+    _enfileirarOffline(tipo, dados);
+    _salvando = false; _bloquearBotoes(false);
+    return;
+  }
+  fn();
+}
+
+// ─── Eventos de conexão ─────────────────────────────────
+window.addEventListener('online',  () => {
+  _estaOnline = true;
+  _mostrarBannerOffline(true);
+  // Se há itens na fila, tenta enviar automaticamente após 2s
+  if (_tamanhoFila() > 0) setTimeout(processarFilaOffline, 2000);
+});
+window.addEventListener('offline', () => {
+  _estaOnline = false;
+  _mostrarBannerOffline(false);
+});
+
+// ═══════════════════════════════════════════════════════
+// [F4-2] EXIBIR QR CODE NO RESULTADO APÓS SALVAR
+// ═══════════════════════════════════════════════════════
+function _mostrarQR(prefixo, urlVerif) {
+  if (!urlVerif) return;
+  const qrSrc = 'https://chart.googleapis.com/chart?chs=60x60&cht=qr&chl=' + (encodeURIComponent(urlVerif)) + '&choe=UTF-8';
+  const box   = document.getElementById((prefixo) + '-qr-box');
+  const img   = document.getElementById((prefixo) + '-qr-img');
+  const link  = document.getElementById((prefixo) + '-qr-link');
+  if (!box || !img || !link) return;
+  img.src  = qrSrc;
+  link.href = urlVerif;
+  box.style.display = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// [V8-2] CONFIGURAÇÕES — estado local
+// ═══════════════════════════════════════════════════════
+let _cfgAtual   = {};   // configurações carregadas do backend
+let _chipsData  = { professores: [], componentes: [], turmas: [] };
+let _emailsMap  = {};   // { nomeProfessor: email }
+let _atribData  = [];   // [{ professor, componente, turma }]
+
+// Alterna aba de configurações
+function cfg_aba(id) {
+  document.querySelectorAll('.cfg-tab').forEach((btn, i) => {
+    const ids = ['escola','professores','atribuicoes','pontuacao','bncc'];
+    btn.classList.toggle('ativo', ids[i] === id);
+  });
+  document.querySelectorAll('.cfg-painel').forEach(p => p.classList.remove('ativo'));
+  const painel = document.getElementById('cfg-' + id);
+  if (painel) {
+    painel.classList.add('ativo');
+    if (id === 'bncc') _carregarStatusBNCC();
+  }
+}
+
+// Carrega todas as configurações do backend e preenche os campos
+function carregarConfiguracoes() {
+  if (typeof google === 'undefined') {
+    // Modo dev: dados simulados
+    _cfgAtual = {
+      escola_nome: 'Colégio Municipal de 1º e 2º Graus de Itabatan',
+      escola_endereco: 'Av. Itapetinga, 305 - Gazzinelândia - Itabatan - Mucuri/BA',
+      escola_cep: '45.936-000',
+      escola_criacao: 'Criação 062/94 - Aut. CEE 236/95 DO 25/01/1996',
+      ano_letivo: String(ANO_ATUAL),
+      trimestres: '3',
+      avaliacao_geral: '12,0',
+      avaliacao_parcial: '18,0',
+      dias_letivos_anuais: '200',
+      hora_aula_minutos: '50',
+      lembrete_dia_semana: 'FRIDAY',
+      lembrete_hora: '15',
+      coordenacao_nome: 'Coordenação Pedagógica',
+    };
+    _preencherCamposCfg();
+    _carregarChipsCadastros();
+    return;
+  }
+
+  mostrarOverlay('Carregando configurações…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r && r.sucesso) {
+        _cfgAtual = r.cfg || {};
+        _preencherCamposCfg();
+        _carregarChipsCadastros();
+      } else {
+        toast('Erro ao carregar configurações.', 'erro');
+      }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .getConfiguracoes();
+}
+
+function _preencherCamposCfg() {
+  const campos = [
+    'escola_nome','escola_endereco','escola_cep','escola_criacao',
+    'ano_letivo','trimestres','avaliacao_geral','avaliacao_parcial',
+    'dias_letivos_anuais','hora_aula_minutos',
+    'lembrete_dia_semana','lembrete_hora','coordenacao_nome',
+  ];
+  campos.forEach(c => {
+    const el = document.getElementById('cfg-' + c);
+    if (el && _cfgAtual[c] !== undefined) el.value = _cfgAtual[c];
+  });
+}
+
+// ─── Aba Escola ─────────────────────────────────────────
+function salvarCfgEscola() {
+  const payload = {
+    escola_nome:       document.getElementById('cfg-escola_nome').value.trim(),
+    escola_endereco:   document.getElementById('cfg-escola_endereco').value.trim(),
+    escola_cep:        document.getElementById('cfg-escola_cep').value.trim(),
+    escola_criacao:    document.getElementById('cfg-escola_criacao').value.trim(),
+    ano_letivo:        document.getElementById('cfg-ano_letivo').value.trim(),
+    trimestres:        document.getElementById('cfg-trimestres').value,
+    coordenacao_nome:  document.getElementById('cfg-coordenacao_nome').value.trim(),
+    hora_aula_minutos: document.getElementById('cfg-hora_aula_minutos').value.trim(),
+    dias_letivos_anuais: document.getElementById('cfg-dias_letivos_anuais').value.trim(),
+  };
+  _salvarConfiguracoes(payload, 'Configurações da escola salvas!');
+}
+
+// ─── Aba Pontuação ──────────────────────────────────────
+function salvarCfgPontuacao() {
+  const payload = {
+    avaliacao_geral:     document.getElementById('cfg-avaliacao_geral').value.trim(),
+    avaliacao_parcial:   document.getElementById('cfg-avaliacao_parcial').value.trim(),
+    lembrete_dia_semana: document.getElementById('cfg-lembrete_dia_semana').value,
+    lembrete_hora:       document.getElementById('cfg-lembrete_hora').value.trim(),
+  };
+  _salvarConfiguracoes(payload, 'Configurações de avaliação salvas!');
+}
+
+function _salvarConfiguracoes(payload, msg) {
+  if (typeof google === 'undefined') { toast(msg + ' (modo dev)', 'sucesso'); return; }
+  mostrarOverlay('Salvando…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r && r.sucesso) toast(msg, 'sucesso');
+      else toast('Erro ao salvar: ' + (r && r.erro), 'erro');
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .salvarConfiguracoes(payload);
+}
+
+// ─── Chips (professores / componentes / turmas) ─────────
+function _carregarChipsCadastros() {
+  _chipsData = {
+    professores: [...(CADASTROS.professores || [])],
+    componentes: [...(CADASTROS.componentes || [])],
+    turmas:      [...(CADASTROS.turmas      || [])],
+  };
+  _emailsMap = { ...(CADASTROS.emails || {}) };
+  _renderizarChips('professores');
+  _renderizarChips('componentes');
+  _renderizarChips('turmas');
+  _renderizarEmailsList();
+  _carregarAtribuicoes();
+}
+
+function _renderizarChips(tipo) {
+  const wrap = document.getElementById('chips-' + tipo);
+  if (!wrap) return;
+  const input = wrap.querySelector('.chip-input');
+  wrap.innerHTML = '';
+  (_chipsData[tipo] || []).forEach((v, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = '<span>' + (esc(v)) + '</span><button type="button" class="btn-remover-chip" data-tipo="' + (tipo) + '" data-index="' + (i) + '" title="Remover">✕</button>';
+    wrap.appendChild(chip);
+  });
+  if (input) { input.value = ''; wrap.appendChild(input); }
+  
+  // Event listeners para botões de remover
+  wrap.querySelectorAll('.btn-remover-chip').forEach(btn => {
+    btn.addEventListener('click', function() {
+      _removerChip(this.dataset.tipo, parseInt(this.dataset.index));
+    });
+  });
+}
+
+function chipKeydown(e, tipo) {
+  if (e.key !== 'Enter' && e.key !== ',') return;
+  e.preventDefault();
+  const val = e.target.value.trim();
+  if (!val) return;
+  if (!_chipsData[tipo]) _chipsData[tipo] = [];
+  if (_chipsData[tipo].includes(val)) { toast('Já existe: ' + val, 'aviso'); return; }
+  _chipsData[tipo].push(val);
+  e.target.value = '';
+  _renderizarChips(tipo);
+  if (tipo === 'professores') _renderizarEmailsList();
+}
+
+function _removerChip(tipo, idx) {
+  if (!confirm('Remover "' + (_chipsData[tipo][idx]) + '"?')) return;
+  _chipsData[tipo].splice(idx, 1);
+  _renderizarChips(tipo);
+  if (tipo === 'professores') _renderizarEmailsList();
+}
+
+function _renderizarEmailsList() {
+  const lista = document.getElementById('emails-professores-lista');
+  if (!lista) return;
+  if (!_chipsData.professores.length) {
+    lista.innerHTML = '<p style="color:var(--texto-s);font-size:.85rem">Nenhum professor cadastrado ainda.</p>';
+    return;
+  }
+  lista.innerHTML = '<table class="cfg-table">' + "\n" + '    <thead><tr><th>Professor(a)</th><th>E-mail Google</th></tr></thead>' + "\n" + '    <tbody>' + (_chipsData.professores.map((p, idx) => '<tr>' + "\n" + '      <td style="width:40%">' + (esc(p)) + '</td>' + "\n" + '      <td><input type="email" value="' + (esc(_emailsMap[p]||'')) + '" placeholder="email@escola.edu.br"' + "\n" + '        data-prof-index="' + (idx) + '"' + "\n" + '        style="max-width:300px"></td>' + "\n" + '    </tr>').join('')) + '' + "\n" + '    </tbody></table>';
+  
+  // Adiciona event listeners aos inputs de email
+  setTimeout(() => {
+    lista.querySelectorAll('input[type=email]').forEach((input, idx) => {
+      const professor = _chipsData.professores[idx];
+      if (professor) {
+        input.addEventListener('change', function() {
+          _emailsMap[professor] = this.value.trim();
+        });
+      }
+    });
+  }, 0);
+}
+
+function salvarCfgProfessores() {
+  // Atualiza e-mails antes de salvar
+  document.querySelectorAll('#emails-professores-lista input[type=email]').forEach((el, i) => {
+    const prof = _chipsData.professores[i];
+    if (prof) _emailsMap[prof] = el.value.trim();
+  });
+
+  const payload = {
+    professores: _chipsData.professores,
+    componentes: _chipsData.componentes,
+    turmas:      _chipsData.turmas,
+    emails:      _emailsMap,
+    atribuicoes: _atribData,
+  };
+
+  if (typeof google === 'undefined') {
+    CADASTROS.professores = payload.professores;
+    CADASTROS.componentes = payload.componentes;
+    CADASTROS.turmas      = payload.turmas;
+    CADASTROS.emails      = payload.emails;
+    preencherSelects();
+    toast('Cadastros salvos! (modo dev)', 'sucesso');
+    return;
+  }
+
+  mostrarOverlay('Salvando cadastros…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r && r.sucesso) {
+        CADASTROS.professores = payload.professores;
+        CADASTROS.componentes = payload.componentes;
+        CADASTROS.turmas      = payload.turmas;
+        CADASTROS.emails      = payload.emails;
+        preencherSelects();
+        toast('Professores, turmas e componentes salvos!', 'sucesso');
+      } else { toast('Erro: ' + (r && r.erro), 'erro'); }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .salvarCadastros(payload);
+}
+
+// ─── Aba Atribuições ────────────────────────────────────
+function _carregarAtribuicoes() {
+  // Monta atribuições a partir dos selects de professores/componentes/turmas
+  // já existentes na aba TurmasProfessor (via getCadastros não as traz, precisaria de rota própria)
+  // Por ora inicializa vazio — o usuário adiciona manualmente
+  _renderizarAtribuicoes();
+}
+
+function adicionarLinhaAtrib() {
+  _atribData.push({ professor: '', componente: '', turma: '' });
+  _renderizarAtribuicoes();
+}
+
+function _renderizarAtribuicoes() {
+  const cont = document.getElementById('atrib-linhas');
+  if (!cont) return;
+
+  const profOpts  = (_chipsData.professores || CADASTROS.professores || [])
+    .map(p => '<option value="' + (esc(p)) + '">' + (esc(p)) + '</option>').join('');
+  const compOpts  = (_chipsData.componentes || CADASTROS.componentes || [])
+    .map(c => '<option value="' + (esc(c)) + '">' + (esc(c)) + '</option>').join('');
+  const turmaOpts = (_chipsData.turmas || CADASTROS.turmas || [])
+    .map(t => '<option value="' + (esc(t)) + '">' + (esc(t)) + '</option>').join('');
+
+  cont.innerHTML = _atribData.map((a, i) => '' + "\n" + '    <div class="atrib-grid" id="atrib-' + (i) + '" data-atrib-index="' + (i) + '">' + "\n" + '      <select data-field="professor">' + "\n" + '        <option value="">— professor —</option>' + (profOpts) + '' + "\n" + '      </select>' + "\n" + '      <select data-field="componente">' + "\n" + '        <option value="">— componente —</option>' + (compOpts) + '' + "\n" + '      </select>' + "\n" + '      <select data-field="turma">' + "\n" + '        <option value="">— turma —</option>' + (turmaOpts) + '' + "\n" + '      </select>' + "\n" + '      <button class="btn-remove-atrib" data-index="' + (i) + '">✕</button>' + "\n" + '    </div>').join('');
+
+  // Restaura valores selecionados e adiciona event listeners
+  _atribData.forEach((a, i) => {
+    const row = document.getElementById('atrib-' + i);
+    if (!row) return;
+    const sels = row.querySelectorAll('select');
+    if (sels[0]) {
+      sels[0].value = a.professor || '';
+      sels[0].addEventListener('change', function() {
+        _atribData[i].professor = this.value;
+      });
+    }
+    if (sels[1]) {
+      sels[1].value = a.componente || '';
+      sels[1].addEventListener('change', function() {
+        _atribData[i].componente = this.value;
+      });
+    }
+    if (sels[2]) {
+      sels[2].value = a.turma || '';
+      sels[2].addEventListener('change', function() {
+        _atribData[i].turma = this.value;
+      });
+    }
+    const btnRemove = row.querySelector('.btn-remove-atrib');
+    if (btnRemove) {
+      btnRemove.addEventListener('click', function() {
+        _removerAtrib(parseInt(this.dataset.index));
+      });
+    }
+  });
+}
+
+function _removerAtrib(idx) {
+  _atribData.splice(idx, 1);
+  _renderizarAtribuicoes();
+}
+
+function salvarCfgAtribuicoes() {
+  const validas = _atribData.filter(a => a.professor && a.componente && a.turma);
+  if (validas.length === 0) { toast('Adicione ao menos uma atribuição válida.', 'aviso'); return; }
+
+  const payload = {
+    professores: _chipsData.professores || CADASTROS.professores,
+    componentes: _chipsData.componentes || CADASTROS.componentes,
+    turmas:      _chipsData.turmas      || CADASTROS.turmas,
+    emails:      _emailsMap,
+    atribuicoes: validas,
+  };
+
+  if (typeof google === 'undefined') { toast((validas.length) + ' atribuição(ões) salva(s)! (dev)', 'sucesso'); return; }
+  mostrarOverlay('Salvando atribuições…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r && r.sucesso) toast((validas.length) + ' atribuição(ões) salva(s)!', 'sucesso');
+      else toast('Erro: ' + (r && r.erro), 'erro');
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .salvarCadastros(payload);
+}
+
+// ─── Aba BNCC ───────────────────────────────────────────
+function _carregarStatusBNCC() {
+  const box = document.getElementById('bncc-status-box');
+  if (!box) return;
+  if (typeof google === 'undefined') {
+    box.innerHTML = '<strong>Modo dev</strong> — banco local com 30 habilidades de demonstração.';
+    return;
+  }
+  box.innerHTML = 'Verificando banco local…';
+  google.script.run
+    .withSuccessHandler(r => {
+      if (!r) { box.innerHTML = 'Não foi possível verificar o banco.'; return; }
+      const total = (r.data || []).length;
+      box.innerHTML = total > 0
+        ? '<strong>' + (total) + ' habilidades</strong> armazenadas no banco local (aba BNCC da planilha). Use a importação acima para enriquecer o banco.'
+        : 'Banco local vazio. Importe habilidades pela API acima para começar.';
+    })
+    .withFailureHandler(() => { box.innerHTML = 'Erro ao verificar banco.'; })
+    .buscarHabilidadesBNCC('EF'); // busca ampla para contar
+}
+
+function importarBNCC() {
+  const comp = document.getElementById('bncc-import-comp').value;
+  const seg  = document.getElementById('bncc-import-seg').value;
+  if (!comp) { toast('Selecione um componente.', 'aviso'); return; }
+
+  if (typeof google === 'undefined') { toast('Importação disponível apenas no Apps Script.', 'aviso'); return; }
+
+  mostrarOverlay('Importando habilidades de ' + (comp) + ' / ' + (seg) + ' da API oficial…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r && r.sucesso) {
+        toast('✅ ' + (r.importadas) + ' habilidades importadas com sucesso!', 'sucesso');
+        _carregarStatusBNCC();
+      } else {
+        toast('Erro na importação: ' + (r && r.erro || 'API indisponível. Tente novamente mais tarde.'), 'erro');
+      }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .importarHabilidadesBNCC(comp, seg);
+}
+
+function testarBNCC() {
+  const query = document.getElementById('bncc-test-query').value.trim();
+  if (query.length < 2) { toast('Digite ao menos 2 caracteres.', 'aviso'); return; }
+
+  const box = document.getElementById('bncc-test-resultado');
+  const lista = document.getElementById('bncc-test-lista');
+  box.style.display = '';
+  lista.innerHTML = '<div class="historico-vazio">Buscando…</div>';
+
+  if (typeof google === 'undefined') {
+    lista.innerHTML = '<div class="historico-vazio">Busca disponível apenas no Apps Script.</div>';
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (!res || res.length === 0) {
+        lista.innerHTML = '<div class="historico-vazio">Nenhuma habilidade encontrada para essa busca.</div>';
+        return;
+      }
+      lista.innerHTML = res.map(h => '' + "\n" + '        <div class="historico-item">' + "\n" + '          <div class="historico-info">' + "\n" + '            <strong>' + (esc(h.codigo)) + '' + "\n" + '              <span class="bncc-fonte-badge ' + (h.fonte === 'API BNCC oficial' ? 'api' : 'local') + '">' + "\n" + '                ' + (h.fonte === 'API BNCC oficial' ? 'API oficial' : 'cache local') + '' + "\n" + '              </span>' + "\n" + '            </strong>' + "\n" + '            <span>' + (esc(h.componente)) + ' — ' + (esc(h.segmento)) + '</span>' + "\n" + '            <span style="font-size:.82rem;color:var(--texto-s)">' + (esc(h.descricao)) + '</span>' + "\n" + '          </div>' + "\n" + '        </div>').join('');
+    })
+    .withFailureHandler(e => { lista.innerHTML = '<div class="historico-vazio">Erro: ' + (e.message) + '</div>'; })
+    .buscarHabilidadesBNCC(query);
+}
+
+// ─── BNCC dropdown com badge de fonte ───────────────────
+function _renderDropBNCC(resultados, linhaId) {
+  const drop = document.getElementById('drop-' + (linhaId));
+  const hab  = document.getElementById('hab-' + (linhaId));
+  if (!drop) return;
+
+  if (resultados.length === 0) { drop.classList.remove('aberto'); return; }
+
+  drop.innerHTML = resultados.map((h, idx) => '' + "\n" + '    <div class="bncc-item" data-codigo="' + (esc(h.codigo)) + '" data-descricao="' + (esc(h.descricao)) + '" data-linha-id="' + (linhaId) + '">' + "\n" + '      <span class="bncc-codigo">' + (esc(h.codigo)) + '</span>' + "\n" + '      <span class="bncc-segmento">' + (esc(h.componente)) + ' — ' + (esc(h.segmento)) + '</span>' + "\n" + '      <span class="bncc-fonte-badge ' + ((h.fonte||'').includes('API') ? 'api' : 'local') + '">' + "\n" + '        ' + ((h.fonte||'').includes('API') ? 'MEC' : 'local') + '' + "\n" + '      </span>' + "\n" + '      <div class="bncc-desc">' + (esc(h.descricao)) + '</div>' + "\n" + '    </div>').join('');
+
+  // Event delegation para clicks
+  drop.querySelectorAll('.bncc-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const codigo = this.getAttribute('data-codigo');
+      const descricao = this.getAttribute('data-descricao');
+      const linha = this.getAttribute('data-linha-id');
+      _selecionarHabilidade(codigo, descricao, linha);
+    });
+  });
+
+  drop.classList.add('aberto');
+}
+
+// ═══════════════════════════════════════════════════════
+// INICIALIZAÇÃO
+// ═══════════════════════════════════════════════════════
+(function init() {
+  restaurarTema();
+  renderizarMesesAnuais();
+  adicionarLinhaTrimestral();
+  adicionarLinhaTrimestral();
+
+  // [BUG-5] Atualizar badge do ano dinamicamente
+  const badge = document.getElementById('badge-ano');
+  if (badge) badge.textContent = ANO_ATUAL;
+
+  // [BUG-4] Auto-save escuta apenas o container do formulário correspondente
+  ativarAutoSave('trimestral');
+  ativarAutoSave('semanal');
+  ativarAutoSave('anual');
+
+  // Restaura rascunhos ao abrir
+  setTimeout(() => {
+    restaurarRascunho('trimestral');
+    restaurarRascunho('semanal');
+    restaurarRascunho('anual');
+  }, 300);
+
+  // Carrega listas de cadastro
+  carregarCadastros();
+
+  // [F2-4] Carrega perfil do usuário
+  carregarPerfil();
+
+  // [F2-2] Pré-carrega calendário em background (silencioso — sem overlay)
+  setTimeout(() => carregarCalendario(false, true), 1500);
+
+  // [F4-1] Inicializa estado offline
+  _estaOnline = navigator.onLine;
+  if (!navigator.onLine) _mostrarBannerOffline(false);
+  _atualizarUIFila();
+
+  // Se há itens na fila e está online, notifica
+  if (navigator.onLine && _tamanhoFila() > 0) {
+    setTimeout(() => {
+      toast('Você tem ' + (_tamanhoFila()) + ' planejamento(s) na fila offline. Clique em "📤 Enviar" para processar.', 'aviso');
+      _atualizarUIFila();
+    }, 2000);
+  }
+})();
+</script>
+</body>
+</html>
