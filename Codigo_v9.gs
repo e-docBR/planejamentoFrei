@@ -2489,13 +2489,20 @@ function _buscarBNCC_API(query) {
   }
 
   // Tenta a API bncc.ninja (dados oficiais MEC)
-  const url = `https://bncc.ninja/api/habilidades?q=${encodeURIComponent(query)}&limit=15`;
-  const resp = UrlFetchApp.fetch(url, {
-    muteHttpExceptions: true,
-    headers: { 'Accept': 'application/json' },
-  });
+  const url = 'https://bncc.ninja/api/habilidades?q=' + encodeURIComponent(query) + '&limit=15';
+  let resp;
+  try {
+    resp = UrlFetchApp.fetch(url, {
+      muteHttpExceptions: true,
+      headers: { 'Accept': 'application/json' },
+      deadline: 10,
+    });
+  } catch(eFetch) {
+    // DNS error ou timeout — lança para o caller usar fallback local
+    throw new Error('API bncc.ninja indisponivel (DNS/timeout): ' + eFetch.message);
+  }
 
-  if (resp.getResponseCode() !== 200) throw new Error(`API retornou ${resp.getResponseCode()}`);
+  if (resp.getResponseCode() !== 200) throw new Error('API retornou ' + resp.getResponseCode());
 
   const data = JSON.parse(resp.getContentText());
   const itens = (data.habilidades || data.data || data || []).slice(0, 15);
@@ -2575,29 +2582,71 @@ function _salvarHabilidadesLocal(habilidades) {
  * Execute manualmente para pré-popular o banco local.
  * componente: "LP", "MA", "CI", "HI", "GE", "AR", "EF", "LI", "ER"
  * segmento:   "EF" (Ensino Fundamental), "EM" (Ensino Médio)
+ *
+ * Se chamada sem parâmetros (ex: do editor), importa todos os componentes padrão.
+ * Se a API externa estiver indisponível, registra aviso e retorna dados locais existentes.
  */
 function importarHabilidadesBNCC(componente, segmento) {
   _verificarPermissao('importarHabilidadesBNCC');
+
+  // [FIX] Se chamada sem parâmetros do editor, importa todos os componentes padrão
+  if (!componente || String(componente) === 'undefined') {
+    Logger.log('importarHabilidadesBNCC: nenhum componente informado — importando todos os padrão.');
+    const comps = ['LP', 'MA', 'CI', 'HI', 'GE', 'AR', 'EF', 'LI', 'ER'];
+    let totalImportado = 0;
+    const erros = [];
+    comps.forEach(comp => {
+      const res = importarHabilidadesBNCC(comp, segmento || 'EF');
+      if (res.sucesso) totalImportado += (res.importadas || 0);
+      else if (!res.apiIndisponivel) erros.push(comp + ': ' + res.erro);
+    });
+    const msg = 'Importacao em lote: ' + totalImportado + ' habilidade(s).' +
+                (erros.length ? ' Erros: ' + erros.join('; ') : '');
+    log('INFO', 'importarHabilidadesBNCC', msg);
+    Logger.log(msg);
+    return { sucesso: true, importadas: totalImportado, msg };
+  }
+
+  const seg = segmento || 'EF';
   try {
-    const url  = `https://bncc.ninja/api/habilidades?componente=${componente}&segmento=${segmento || 'EF'}&limit=200`;
-    const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-    if (resp.getResponseCode() !== 200) throw new Error(`HTTP ${resp.getResponseCode()}`);
+    const url = 'https://bncc.ninja/api/habilidades?componente=' + encodeURIComponent(componente) +
+                '&segmento=' + encodeURIComponent(seg) + '&limit=200';
+    let resp;
+    try {
+      resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, deadline: 15 });
+    } catch(eFetch) {
+      // DNS error ou timeout — API indisponível
+      const msg = 'API bncc.ninja indisponivel (' + eFetch.message + '). ' +
+                  'Os dados locais continuam disponiveis para busca offline.';
+      log('AVISO', 'importarHabilidadesBNCC', msg);
+      Logger.log('AVISO: ' + msg);
+      return { sucesso: false, importadas: 0, erro: msg, apiIndisponivel: true };
+    }
+
+    if (resp.getResponseCode() !== 200) {
+      throw new Error('HTTP ' + resp.getResponseCode());
+    }
 
     const data = JSON.parse(resp.getContentText());
     const itens = (data.habilidades || data.data || data || []);
-    const resultado = itens.map(h => ({
-      codigo:     h.codigo || h.code || '',
-      componente: h.componente || h.area || '',
-      segmento:   h.ano || h.serie || '',
-      descricao:  h.descricao || h.description || h.text || '',
-    })).filter(h => h.codigo && h.descricao);
+    const resultado = itens
+      .filter(h => h && typeof h === 'object')
+      .map(h => ({
+        codigo:     h.codigo     || h.code        || '',
+        componente: h.componente || h.area        || '',
+        segmento:   h.ano        || h.serie       || '',
+        descricao:  h.descricao  || h.description || h.text || '',
+      }))
+      .filter(h => h.codigo && h.descricao);
 
     _salvarHabilidadesLocal(resultado);
-    const msg = `Importadas ${resultado.length} habilidades de ${componente}/${segmento || 'EF'}`;
+    const msg = 'Importadas ' + resultado.length + ' habilidades de ' + componente + '/' + seg;
     log('INFO', 'importarHabilidadesBNCC', msg);
+    Logger.log(msg);
     return { sucesso: true, importadas: resultado.length, msg };
   } catch(e) {
     log('ERRO', 'importarHabilidadesBNCC', e.message);
+    Logger.log('ERRO importarHabilidadesBNCC (' + componente + '): ' + e.message);
     return { sucesso: false, erro: e.message };
   }
 }
