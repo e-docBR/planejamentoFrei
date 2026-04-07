@@ -1085,6 +1085,12 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <p>Acesse todos os PDFs que você já salvou no Drive.</p>
       <button class="btn-card">Ver histórico</button>
     </div>
+    <div class="menu-card" onclick="abrirModalRelatorioMensal()">
+      <div class="card-icon">📊</div>
+      <h2>Relatório Mensal</h2>
+      <p>Gere uma planilha com todos os planejamentos entregues em um mês.</p>
+      <button class="btn-card">Gerar relatório</button>
+    </div>
   </div>
 </div>
 
@@ -1411,6 +1417,10 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
         <div class="stat-icon">📝</div>
         <div class="stat-info"><strong id="kpi-semanais">—</strong><span>Planos semanais no mês</span></div>
       </div>
+      <div class="stat-card" style="border-left-color:#2d7a4f">
+        <div class="stat-icon">✍️</div>
+        <div class="stat-info"><strong id="kpi-aprovados">—</strong><span>Aprovados pela coordenação</span></div>
+      </div>
     </div>
 
     <!-- [F3-3] Gráficos -->
@@ -1445,6 +1455,12 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
         <option value="">Todos os componentes</option>
       </select>
       <input type="text" id="coord-busca" placeholder="Buscar professor..." oninput="carregarPainel()">
+      <select id="coord-status" onchange="carregarPainel()">
+        <option value="">Todos os status</option>
+        <option value="Aprovado">Aprovados</option>
+        <option value="Revisão solicitada">Revisão solicitada</option>
+        <option value="Entregue">Entregues (sem avaliação)</option>
+      </select>
       <button class="btn btn-outline" onclick="gerarRelatorioPendencias()" style="padding:7px 14px; font-size:.85rem">
         📋 Gerar Relatório de Pendências
       </button>
@@ -1533,6 +1549,41 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
   </div>
 </div>
 
+<!-- ────── MODAL RELATÓRIO MENSAL [V10-D4] ────── -->
+<div id="modal-relatorio-mensal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9000;align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:14px;width:min(420px,94vw);padding:28px;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="margin:0;font-size:1.1rem">📊 Gerar Relatório Mensal</h3>
+      <button onclick="fecharModalRelatorioMensal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--texto-s)">✕</button>
+    </div>
+    <div class="campo" style="margin-bottom:14px">
+      <label>Professor(a)</label>
+      <select id="relm-professor"><option value="">— selecione —</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+      <div class="campo">
+        <label>Mês</label>
+        <select id="relm-mes">
+          <option value="01">Janeiro</option><option value="02">Fevereiro</option>
+          <option value="03">Março</option><option value="04">Abril</option>
+          <option value="05">Maio</option><option value="06">Junho</option>
+          <option value="07">Julho</option><option value="08">Agosto</option>
+          <option value="09">Setembro</option><option value="10">Outubro</option>
+          <option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Ano</label>
+        <input type="number" id="relm-ano" style="width:100%" min="2020" max="2099">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secundario" onclick="fecharModalRelatorioMensal()">Cancelar</button>
+      <button class="btn btn-primario" onclick="confirmarRelatorioMensal()">📊 Gerar relatório</button>
+    </div>
+  </div>
+</div>
+
 <!-- ────── MODAL DE APROVAÇÃO [F3-1] ────── -->
 <div id="modal-aprovacao">
   <div class="modal-aprov-box">
@@ -1577,6 +1628,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <button class="cfg-tab" onclick="cfg_aba('atribuicoes')">📋 Atribuições</button>
       <button class="cfg-tab" onclick="cfg_aba('pontuacao')">📊 Avaliação</button>
       <button class="cfg-tab" onclick="cfg_aba('bncc')">📚 BNCC</button>
+      <button class="cfg-tab" onclick="cfg_aba('logs')">📋 Logs</button>
     </div>
 
     <!-- ABA: Escola -->
@@ -1753,6 +1805,23 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       </div>
     </div>
 
+    <!-- ABA: Logs do Sistema [V10-D1] -->
+    <div class="cfg-painel" id="cfg-logs">
+      <div class="section-label" style="display:flex;align-items:center;gap:12px">
+        📋 Logs do Sistema
+        <select id="logs-filtro-nivel" style="font-size:.8rem;padding:4px 8px;border:1.5px solid var(--borda);border-radius:6px;background:var(--card);color:var(--texto)">
+          <option value="">Todos os níveis</option>
+          <option value="ERRO">Apenas Erros</option>
+          <option value="AVISO">Apenas Avisos</option>
+          <option value="INFO">Apenas Info</option>
+        </select>
+        <button class="btn btn-outline" style="padding:5px 14px;font-size:.82rem;margin-left:auto" onclick="carregarLogs()">🔄 Carregar logs</button>
+      </div>
+      <div id="logs-corpo">
+        <div class="info-box" style="text-align:center;padding:24px;color:var(--texto-s)">Clique em "Carregar logs" para exibir as últimas entradas da aba Logs.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1858,7 +1927,7 @@ function preencherSelects() {
     if (!el) return;
     const placeholder = id === 'coord-componente' ? 'Todos os componentes' : '— selecione —';
     const atual = el.value;
-    el.innerHTML = '<option value="">' + (placeholder) + '</option>';
+    el.innerHTML = '<option value="">' + esc(placeholder) + '</option>'; // [A1] XSS fix
     CADASTROS.componentes.forEach(c => {
       const opt = document.createElement('option');
       opt.value = opt.textContent = c;
@@ -2039,17 +2108,17 @@ let PERFIL_ATUAL = { nome: '', email: '', perfil: 'dev' };
 
 function carregarPerfil() {
   if (typeof google === 'undefined') {
-    PERFIL_ATUAL = {
+    PERFIL_ATUAL = Object.freeze({ // [A2] Congelar após carga — impede mutação via console
       nome: 'Professor Demo', email: 'demo@escola.edu.br', perfil: 'professor',
       turmas: ['6ºA','7ºA'], componentes: ['Matemática']
-    };
+    });
     _aplicarPerfil();
     _aplicarFiltroPerfil(); // [V8-1]
     return;
   }
   google.script.run
     .withSuccessHandler(p => {
-      PERFIL_ATUAL = p;
+      PERFIL_ATUAL = Object.freeze(p); // [A2] Congelar após carga do backend
       _aplicarPerfil();
       _aplicarFiltroPerfil(); // [V8-1] re-aplica filtros com dados do perfil
     })
@@ -2090,7 +2159,7 @@ function _aplicarPerfil() {
   if (ehProf && PERFIL_ATUAL.nome) {
     ['t-professor','s-professor','a-professor'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) setTimeout(() => { if (!el.value) el.value = PERFIL_ATUAL.nome; }, 400);
+      if (el) _setTimer('preencher-prof-' + id, () => { if (!el.value) el.value = PERFIL_ATUAL.nome; }, 400); // [B1]
     });
   }
 
@@ -2123,7 +2192,14 @@ function _aplicarPerfil() {
       if (!box) return;
       const linkDiv = document.createElement('p');
       linkDiv.style.marginTop = '6px';
-      linkDiv.innerHTML = '<a href="' + (PERFIL_ATUAL.pastaUrl) + '" target="_blank" style="color:var(--azul-m);font-size:.85rem">' + "\n" + '        📁 Ver todos os seus planejamentos no Drive' + "\n" + '      </a>';
+      // [A1] XSS fix: usar DOM API em vez de innerHTML com URL não escapada
+      const linkPasta2 = document.createElement('a');
+      if (/^https?:\/\//.test(PERFIL_ATUAL.pastaUrl)) linkPasta2.href = PERFIL_ATUAL.pastaUrl;
+      linkPasta2.target = '_blank';
+      linkPasta2.rel = 'noopener noreferrer';
+      linkPasta2.style.cssText = 'color:var(--azul-m);font-size:.85rem';
+      linkPasta2.textContent = '📁 Ver todos os seus planejamentos no Drive';
+      linkDiv.appendChild(linkPasta2);
       box.appendChild(linkDiv);
     });
   }
@@ -2132,23 +2208,49 @@ function _aplicarPerfil() {
 // ═══════════════════════════════════════════════════════
 // [F2-2] CALENDÁRIO ESCOLAR
 // ═══════════════════════════════════════════════════════
-let _calendarioDados = [];     // cache local dos eventos
+let _calendarioDados = [];     // cache em memória dos eventos
 let _calAnoAtual  = ANO_ATUAL;
 let _calMesAtual  = new Date().getMonth(); // 0-based
 
+const _CAL_LS_KEY  = 'planej_calendario_v9';
+const _CAL_LS_TTL  = 24 * 60 * 60 * 1000; // 24 horas
+
+function _salvarCacheCalendario(dados) {
+  try { localStorage.setItem(_CAL_LS_KEY, JSON.stringify({ ts: Date.now(), dados: dados })); } catch(e) { /* quota */ }
+}
+function _carregarCacheCalendario() {
+  try {
+    const raw = localStorage.getItem(_CAL_LS_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if ((Date.now() - obj.ts) > _CAL_LS_TTL) { localStorage.removeItem(_CAL_LS_KEY); return null; }
+    return obj.dados;
+  } catch(e) { return null; }
+}
+
 function carregarCalendario(forcar, silencioso) {
+  // 1. Memória (mais rápida)
   if (!forcar && _calendarioDados.length > 0) {
     if (paginaAtual === 'calendario') _renderizarCalendario();
     return;
   }
+  // 2. localStorage (até 24h)
+  if (!forcar) {
+    const cached = _carregarCacheCalendario();
+    if (cached) {
+      _calendarioDados = cached;
+      if (paginaAtual === 'calendario') _renderizarCalendario();
+      return;
+    }
+  }
   if (typeof google === 'undefined') {
     // Modo dev: dados simulados
     _calendarioDados = [
-      { data: '01/01/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Confraternização Universal' },
-      { data: '21/04/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Tiradentes' },
-      { data: '01/05/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Dia do Trabalho' },
-      { data: '07/09/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Independência do Brasil' },
-      { data: '25/12/' + (ANO_ATUAL), tipo: 'FERIADO',  descricao: 'Natal' },
+      { data: '01/01/' + ANO_ATUAL, tipo: 'FERIADO',  descricao: 'Confraternização Universal' },
+      { data: '21/04/' + ANO_ATUAL, tipo: 'FERIADO',  descricao: 'Tiradentes' },
+      { data: '01/05/' + ANO_ATUAL, tipo: 'FERIADO',  descricao: 'Dia do Trabalho' },
+      { data: '07/09/' + ANO_ATUAL, tipo: 'FERIADO',  descricao: 'Independência do Brasil' },
+      { data: '25/12/' + ANO_ATUAL, tipo: 'FERIADO',  descricao: 'Natal' },
     ];
     if (paginaAtual === 'calendario') _renderizarCalendario();
     return;
@@ -2158,6 +2260,7 @@ function carregarCalendario(forcar, silencioso) {
     .withSuccessHandler(dados => {
       if (!silencioso) esconderOverlay();
       _calendarioDados = dados || [];
+      _salvarCacheCalendario(_calendarioDados); // [B5] persiste no localStorage
       if (paginaAtual === 'calendario') _renderizarCalendario();
     })
     .withFailureHandler(e => {
@@ -2238,26 +2341,33 @@ function isDiaLetivo(dateObj) {
 // [F2-3] AUTOCOMPLETE BNCC
 // ═══════════════════════════════════════════════════════
 let _bnccTimer = null;
+const _bnccHandlers = {}; // [B2] Guarda referências para remover listeners ao deletar linha
 
 function _ativarAutocompleteBNCC(linhaId) {
   const hab  = document.getElementById('hab-' + (linhaId));
   const drop = document.getElementById('drop-' + (linhaId));
   if (!hab || !drop) return;
 
-  hab.addEventListener('input', () => {
+  // [B2] Handlers nomeados para permitir removeEventListener preciso
+  const onInput = () => {
     clearTimeout(_bnccTimer);
     const q = hab.value.trim();
     if (q.length < 2) { drop.classList.remove('aberto'); return; }
     _bnccTimer = setTimeout(() => _buscarBNCC(q, linhaId), 350);
-  });
-
-  hab.addEventListener('keydown', e => {
+  };
+  const onKeydown = e => {
     if (e.key === 'Escape') drop.classList.remove('aberto');
-  });
-
-  document.addEventListener('click', e => {
+  };
+  const onClick = e => {
     if (!drop.contains(e.target) && e.target !== hab) drop.classList.remove('aberto');
-  }, { capture: true });
+  };
+
+  hab.addEventListener('input', onInput);
+  hab.addEventListener('keydown', onKeydown);
+  document.addEventListener('click', onClick, { capture: true });
+
+  // Guarda referências para limpeza em removerLinha()
+  _bnccHandlers[linhaId] = { hab, onInput, onKeydown, onClick };
 }
 
 function _buscarBNCC(query, linhaId) {
@@ -2454,6 +2564,14 @@ function adicionarLinhaTrimestral(dados) {
 }
 
 function removerLinha(id) {
+  // [B2] Remove event listeners do autocomplete BNCC antes de destruir o elemento
+  if (_bnccHandlers[id]) {
+    const { hab, onInput, onKeydown, onClick } = _bnccHandlers[id];
+    hab.removeEventListener('input', onInput);
+    hab.removeEventListener('keydown', onKeydown);
+    document.removeEventListener('click', onClick, { capture: true });
+    delete _bnccHandlers[id];
+  }
   const el = document.getElementById('linha-' + id);
   if (el) el.remove();
 }
@@ -2698,9 +2816,9 @@ function imprimirPrevia() {
 // IMPRIMIR FORMULÁRIO ATUAL
 // ═══════════════════════════════════════════════════════
 function imprimirAtual() {
-  if (paginaAtual === 'trimestral') { previaTrimestral(); setTimeout(imprimirPrevia, 300); }
-  else if (paginaAtual === 'semanal') { previaSemanal(); setTimeout(imprimirPrevia, 300); }
-  else if (paginaAtual === 'anual')  { previaAnual(); setTimeout(imprimirPrevia, 300); }
+  if (paginaAtual === 'trimestral') { previaTrimestral(); _setTimer('imprimir', imprimirPrevia, 300); } // [B1]
+  else if (paginaAtual === 'semanal') { previaSemanal(); _setTimer('imprimir', imprimirPrevia, 300); }
+  else if (paginaAtual === 'anual')  { previaAnual(); _setTimer('imprimir', imprimirPrevia, 300); }
   else toast('Abra um formulário para imprimir.', 'aviso');
 }
 
@@ -2735,7 +2853,8 @@ function exportarDocs(tipo) {
 let _salvando = false;
 
 function _bloquearBotoes(bloquear) {
-  document.querySelectorAll('.btn-primario').forEach(btn => {
+  // [B3] Cobrir todos os botões de ação, não apenas .btn-primario
+  document.querySelectorAll('.btn-primario, .btn-laranja, .btn-outline, .btn-linha').forEach(btn => {
     btn.disabled = bloquear;
     btn.style.opacity = bloquear ? '0.55' : '';
     btn.style.cursor  = bloquear ? 'not-allowed' : '';
@@ -2951,6 +3070,57 @@ function fecharModalAprovacao() {
   _aprovacaoPayload = {};
 }
 
+// [V10-D4] Modal de relatório mensal
+function abrirModalRelatorioMensal() {
+  const modal = document.getElementById('modal-relatorio-mensal');
+  if (!modal) return;
+  // Preenche ano atual
+  const anoEl = document.getElementById('relm-ano');
+  if (anoEl && !anoEl.value) anoEl.value = ANO_ATUAL;
+  // Preenche mês atual
+  const mesEl = document.getElementById('relm-mes');
+  if (mesEl) mesEl.value = String(new Date().getMonth() + 1).padStart(2, '0');
+  // Preenche lista de professores
+  const sel = document.getElementById('relm-professor');
+  if (sel && sel.options.length <= 1 && typeof PERFIL_ATUAL !== 'undefined') {
+    // Coordenação vê todos, professor vê só ele mesmo
+    if (PERFIL_ATUAL.perfil === 'professor') {
+      sel.innerHTML = '<option value="' + esc(PERFIL_ATUAL.nome) + '">' + esc(PERFIL_ATUAL.nome) + '</option>';
+    } else {
+      // Reutiliza opções do select de histórico
+      const histSel = document.getElementById('hist-professor');
+      if (histSel) sel.innerHTML = histSel.innerHTML;
+    }
+  }
+  modal.style.display = 'flex';
+}
+function fecharModalRelatorioMensal() {
+  const modal = document.getElementById('modal-relatorio-mensal');
+  if (modal) modal.style.display = 'none';
+}
+function confirmarRelatorioMensal() {
+  const professor = document.getElementById('relm-professor').value;
+  const mes       = document.getElementById('relm-mes').value;
+  const ano       = document.getElementById('relm-ano').value;
+  if (!professor) { toast('Selecione um professor.', 'aviso'); return; }
+  if (!mes || !ano) { toast('Informe mês e ano.', 'aviso'); return; }
+  if (typeof google === 'undefined') { toast('Disponível apenas no Apps Script.', 'aviso'); return; }
+  fecharModalRelatorioMensal();
+  mostrarOverlay('Gerando relatório mensal…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (r.sucesso) {
+        toast('Relatório gerado — ' + r.total + ' planejamento(s)!', 'sucesso');
+        window.open(r.url, '_blank');
+      } else {
+        toast('Erro: ' + esc(r.erro), 'erro');
+      }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + esc(e.message), 'erro'); })
+    .gerarRelatorioMensalProfessor({ professor, mes, ano });
+}
+
 function confirmarAprovacao() {
   const decisao    = document.getElementById('aprov-decisao').value;
   const comentario = document.getElementById('aprov-comentario').value.trim();
@@ -3043,6 +3213,10 @@ function _renderizarAprovacoesProfessor(professor) {
 // ═══════════════════════════════════════════════════════
 // [F3-2] EDITAR PLANEJAMENTO SALVO
 // ═══════════════════════════════════════════════════════
+const HIST_PAG_TAM = 20;
+let _historicoTodos = [];
+let _historicoPag   = 0;
+
 function carregarHistorico() {
   const professor = document.getElementById('hist-professor').value;
   const tipo      = document.getElementById('hist-tipo').value;
@@ -3062,37 +3236,86 @@ function carregarHistorico() {
         lista.innerHTML = '<div class="historico-vazio">Nenhum planejamento encontrado.</div>';
         return;
       }
-      const filtrados = registros.filter(r =>
+      _historicoTodos = registros.filter(r =>
         (!tipo  || r.tipo === tipo) &&
         (!busca || (r.componente||'').toLowerCase().includes(busca))
       );
-      if (filtrados.length === 0) {
+      if (_historicoTodos.length === 0) {
         lista.innerHTML = '<div class="historico-vazio">Nenhum resultado para os filtros aplicados.</div>';
         return;
       }
-      lista.innerHTML = filtrados.map(r => {
-        const podeEditar = PERFIL_ATUAL.perfil === 'professor' || PERFIL_ATUAL.perfil === 'dev';
-        const podeAprovar = PERFIL_ATUAL.perfil === 'coordenacao' || PERFIL_ATUAL.perfil === 'dev';
-        const periodo = r.trimestre ? (r.trimestre) + 'º Tri' : r.semanaInicio ? 'Semana ' + (r.semanaInicio) : '';
-        return '<div class="historico-item">' + "\n" + '          <div class="historico-info">' + "\n" + '            <strong>' + (r.tipo) + ' — ' + (r.componente||'') + (r.anoTurma ? ' / ' + r.anoTurma : '') + '</strong>' + "\n" + '            <span>📅 ' + (r.data) + ' ' + (periodo) + '</span>' + "\n" + '          </div>' + "\n" + '          <div class="historico-item-acoes">' + "\n" + '            ' + (r.url ? '<a href="' + (r.url) + '" target="_blank" class="btn-editar" style="text-decoration:none">📄 Ver PDF</a>' : '') + '' + "\n" + '            ' + (podeEditar && r.linhaIdx ? '<button class="btn-editar" data-tipo="' + (r.tipo) + '" data-linha-idx="' + (r.linhaIdx) + '">✏️ Editar</button>' : '') + '' + "\n" + '            ' + (podeAprovar && r.linhaIdx ? '<button class="btn-aprovar" data-tipo="' + (r.tipo) + '" data-professor="' + (esc(r.professor)) + '" data-componente="' + (esc(r.componente||'')) + '" data-periodo="' + (esc(periodo)) + '" data-url="' + (esc(r.url||'')) + '">✍️ Avaliar</button>' : '') + '' + "\n" + '          </div>' + "\n" + '        </div>';
-      }).join('');
-      
-      // Event delegation para botões
-      setTimeout(() => {
-        lista.querySelectorAll('.btn-editar[data-tipo]').forEach(btn => {
-          btn.addEventListener('click', function() {
-            editarPlanejamento(this.dataset.tipo, parseInt(this.dataset.linhaIdx));
-          });
-        });
-        lista.querySelectorAll('.btn-aprovar').forEach(btn => {
-          btn.addEventListener('click', function() {
-            abrirModalAprovacao(this.dataset.tipo, this.dataset.professor, this.dataset.componente, this.dataset.periodo, this.dataset.url);
-          });
-        });
-      }, 0);
+      _historicoPag = 0;
+      lista.innerHTML = '';
+      _renderHistoricoPagina(lista);
     })
     .withFailureHandler(e => { esconderOverlay(); toast('Erro ao buscar histórico: ' + e.message, 'erro'); })
     .getHistoricoComLinhas(professor);
+}
+
+function _renderItemHistorico(r) {
+  const podeEditar  = PERFIL_ATUAL.perfil === 'professor' || PERFIL_ATUAL.perfil === 'dev';
+  const podeAprovar = PERFIL_ATUAL.perfil === 'coordenacao' || PERFIL_ATUAL.perfil === 'dev';
+  const periodo = r.trimestre ? r.trimestre + 'º Tri' : r.semanaInicio ? 'Semana ' + r.semanaInicio : '';
+  const statusBadge = r.status ? ' <span style="font-size:.72rem;padding:2px 7px;border-radius:10px;background:' +
+    (r.status === 'Aprovado' ? '#dcfce7' : r.status === 'Recusado' ? '#fee2e2' : '#fef9c3') +
+    ';color:' + (r.status === 'Aprovado' ? '#166534' : r.status === 'Recusado' ? '#991b1b' : '#92400e') +
+    '">' + esc(r.status) + '</span>' : '';
+  return '<div class="historico-item">'
+    + '<div class="historico-info">'
+    + '<strong>' + esc(r.tipo) + ' — ' + esc(r.componente||'') + (r.anoTurma ? ' / ' + esc(r.anoTurma) : '') + statusBadge + '</strong>'
+    + '<span>📅 ' + esc(r.data) + ' ' + esc(periodo) + '</span>'
+    + '</div>'
+    + '<div class="historico-item-acoes">'
+    + (r.url ? '<a href="' + esc(r.url) + '" target="_blank" class="btn-editar" style="text-decoration:none">📄 Ver PDF</a>' : '')
+    + (podeEditar && r.linhaIdx ? '<button class="btn-editar" data-tipo="' + esc(r.tipo) + '" data-linha-idx="' + r.linhaIdx + '">✏️ Editar</button>' : '')
+    + (podeEditar && r.linhaIdx ? '<button class="btn-template" data-tipo="' + esc(r.tipo) + '" data-linha-idx="' + r.linhaIdx + '" style="background:var(--laranja);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem">📋 Usar como Template</button>' : '')
+    + (podeAprovar && r.linhaIdx ? '<button class="btn-aprovar" data-tipo="' + esc(r.tipo) + '" data-professor="' + esc(r.professor||'') + '" data-componente="' + esc(r.componente||'') + '" data-periodo="' + esc(periodo) + '" data-url="' + esc(r.url||'') + '">✍️ Avaliar</button>' : '')
+    + '</div>'
+    + '</div>';
+}
+
+function _renderHistoricoPagina(lista) {
+  const inicio = _historicoPag * HIST_PAG_TAM;
+  const fatia  = _historicoTodos.slice(inicio, inicio + HIST_PAG_TAM);
+  const frag   = document.createElement('div');
+  frag.innerHTML = fatia.map(_renderItemHistorico).join('');
+  lista.appendChild(frag);
+
+  // Remove botão "Carregar mais" anterior, se houver
+  const antigo = document.getElementById('hist-mais-btn');
+  if (antigo) antigo.remove();
+
+  // Adiciona se ainda há itens
+  const mostrados = inicio + fatia.length;
+  if (mostrados < _historicoTodos.length) {
+    const restantes = _historicoTodos.length - mostrados;
+    const btn = document.createElement('div');
+    btn.id = 'hist-mais-btn';
+    btn.style.cssText = 'text-align:center;margin:12px 0';
+    btn.innerHTML = '<button class="btn btn-outline" onclick="_carregarMaisHistorico()">Carregar mais ' + restantes + ' registro(s) ▼</button>';
+    lista.appendChild(btn);
+  } else {
+    const total = document.createElement('p');
+    total.style.cssText = 'text-align:center;font-size:.8rem;color:var(--texto-s);margin:8px 0';
+    total.textContent = _historicoTodos.length + ' registro(s) no total.';
+    lista.appendChild(total);
+  }
+
+  // Eventos via event delegation
+  lista.querySelectorAll('.btn-editar[data-tipo]').forEach(btn => {
+    if (!btn._bound) { btn._bound = true; btn.addEventListener('click', function() { editarPlanejamento(this.dataset.tipo, parseInt(this.dataset.linhaIdx)); }); }
+  });
+  lista.querySelectorAll('.btn-aprovar').forEach(btn => {
+    if (!btn._bound) { btn._bound = true; btn.addEventListener('click', function() { abrirModalAprovacao(this.dataset.tipo, this.dataset.professor, this.dataset.componente, this.dataset.periodo, this.dataset.url); }); }
+  });
+  lista.querySelectorAll('.btn-template').forEach(btn => {
+    if (!btn._bound) { btn._bound = true; btn.addEventListener('click', function() { usarComoTemplate(this.dataset.tipo, parseInt(this.dataset.linhaIdx)); }); }
+  });
+}
+
+function _carregarMaisHistorico() {
+  _historicoPag++;
+  _renderHistoricoPagina(document.getElementById('historico-lista'));
 }
 
 function editarPlanejamento(tipo, linhaIdx) {
@@ -3105,13 +3328,40 @@ function editarPlanejamento(tipo, linhaIdx) {
       const d = r.dados;
       if (tipo === 'Trimestral') {
         mostrarPagina('trimestral');
-        setTimeout(() => { preencherFormTrimestral(d); toast('Planejamento carregado — faça os ajustes e salve uma nova versão.', 'aviso'); }, 200);
+        _setTimer('preencher-form', () => { preencherFormTrimestral(d); toast('Planejamento carregado — faça os ajustes e salve uma nova versão.', 'aviso'); }, 200); // [B1]
       } else if (tipo === 'Semanal') {
         mostrarPagina('semanal');
-        setTimeout(() => { preencherFormSemanal(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200);
+        _setTimer('preencher-form', () => { preencherFormSemanal(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200); // [B1]
       } else {
         mostrarPagina('anual');
-        setTimeout(() => { preencherFormAnual(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200);
+        _setTimer('preencher-form', () => { preencherFormAnual(d); toast('Planejamento carregado — ajuste e salve.', 'aviso'); }, 200); // [B1]
+      }
+    })
+    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .carregarParaEdicao(tipo, linhaIdx);
+}
+
+// [D2] Usar planejamento como template: carrega conteúdo mas limpa professor/data/turma
+function usarComoTemplate(tipo, linhaIdx) {
+  if (!confirm('Isso vai copiar o conteúdo deste planejamento como novo rascunho. Os campos Professor, Data e Turma serão limpos. Continuar?')) return;
+  mostrarOverlay('Carregando template…');
+  google.script.run
+    .withSuccessHandler(r => {
+      esconderOverlay();
+      if (!r.sucesso) { toast('Erro: ' + r.erro, 'erro'); return; }
+      const d = r.dados;
+      // Limpa campos de identificação — usuário preenche para a nova entrega
+      delete d.professor; delete d.data; delete d.anoTurma; delete d.turmas;
+      delete d.trimestre; delete d.mes; delete d.semanaInicio;
+      if (tipo === 'Trimestral') {
+        mostrarPagina('trimestral');
+        _setTimer('preencher-form', () => { preencherFormTrimestral(d); toast('Template carregado — preencha os dados da nova entrega e salve.', 'aviso'); }, 200);
+      } else if (tipo === 'Semanal') {
+        mostrarPagina('semanal');
+        _setTimer('preencher-form', () => { preencherFormSemanal(d); toast('Template carregado — preencha os dados e salve.', 'aviso'); }, 200);
+      } else {
+        mostrarPagina('anual');
+        _setTimer('preencher-form', () => { preencherFormAnual(d); toast('Template carregado — preencha os dados e salve.', 'aviso'); }, 200);
       }
     })
     .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
@@ -3156,16 +3406,20 @@ function _renderizarPainel(dados, trimestre, componente, busca) {
   trimestre  = trimestre  || document.getElementById('coord-trimestre').value;
   componente = componente || document.getElementById('coord-componente').value;
   busca      = busca      || document.getElementById('coord-busca').value.toLowerCase();
+  const statusFiltro = (document.getElementById('coord-status') || {}).value || '';
 
   document.getElementById('kpi-entregues').textContent   = dados.totalEntregues  || 0;
   document.getElementById('kpi-pendentes').textContent   = dados.totalPendentes  || 0;
   document.getElementById('kpi-professores').textContent = dados.totalProfessores || 0;
   document.getElementById('kpi-semanais').textContent    = dados.semanaisNoMes   || 0;
+  const kpiAprov = document.getElementById('kpi-aprovados');
+  if (kpiAprov) kpiAprov.textContent = dados.totalAprovados || 0;
 
   const registros = (dados.registros || []).filter(r =>
-    (!trimestre  || (r.trimestre||'').includes(trimestre)) &&
-    (!componente || r.componente === componente) &&
-    (!busca      || (r.professor||'').toLowerCase().includes(busca))
+    (!trimestre    || (r.trimestre||'').includes(trimestre)) &&
+    (!componente   || r.componente === componente) &&
+    (!busca        || (r.professor||'').toLowerCase().includes(busca)) &&
+    (!statusFiltro || r.status === statusFiltro)
   );
 
   const tbody = document.getElementById('painel-tbody');
@@ -3181,8 +3435,8 @@ function _renderizarPainel(dados, trimestre, componente, busca) {
     return '<tr>' + "\n" + '      <td>' + (r.professor||'—') + '</td>' + "\n" + '      <td>' + (r.componente||'—') + '</td>' + "\n" + '      <td>' + (r.tipo||'—') + '</td>' + "\n" + '      <td>' + (periodo) + '</td>' + "\n" + '      <td>' + (r.data||'—') + '</td>' + "\n" + '      <td><span class="status-badge ' + (sc) + '">' + (r.status||'—') + '</span></td>' + "\n" + '      <td>' + (aprovBtn) + '</td>' + "\n" + '      <td>' + (r.url ? '<a href="' + (r.url) + '" target="_blank">📄 Ver</a>' : '—') + '</td>' + "\n" + '    </tr>';
   }).join('');
   
-  // Event delegation para botões de aprovar
-  setTimeout(() => {
+  // Event delegation para botões de aprovar [B1]
+  _setTimer('event-painel', () => {
     tbody.querySelectorAll('.btn-aprovar').forEach(btn => {
       btn.addEventListener('click', function() {
         abrirModalAprovacao(this.dataset.tipo, this.dataset.professor, this.dataset.componente, this.dataset.periodo, this.dataset.url);
@@ -3299,11 +3553,11 @@ function _mostrarBannerOffline(online) {
   if (!online) {
     banner.classList.add('visivel'); banner.classList.remove('online');
     if (msg) msg.textContent = '📡 Sem conexão — planejamentos serão salvos localmente e enviados ao reconectar';
-    setTimeout(() => {}, 0);
+    // setTimeout vazio removido [B1]
   } else if (_tamanhoFila() > 0) {
     banner.classList.add('visivel', 'online');
     if (msg) msg.textContent = '✅ Conexão restaurada! Clique no botão para enviar ' + (_tamanhoFila()) + ' planejamento(s) da fila.';
-    setTimeout(() => banner.classList.remove('visivel'), 8000);
+    _setTimer('banner-online', () => banner.classList.remove('visivel'), 8000); // [B1]
   } else {
     banner.classList.remove('visivel');
   }
@@ -3312,6 +3566,12 @@ function _mostrarBannerOffline(online) {
 
 // Enfileira um planejamento para envio posterior
 function _enfileirarOffline(tipo, dados) {
+  // [A4] Validar campos mínimos antes de gravar na fila offline
+  if (!dados || !dados.professor || !dados.componente) {
+    toast('Dados incompletos — planejamento não salvo localmente. Preencha professor e componente.', 'erro');
+    _salvando = false; _bloquearBotoes(false);
+    return;
+  }
   const fila = _lerFila();
   const id   = Date.now().toString(36);
   fila.push({ id, tipo, dados, enfileiradoEm: new Date().toISOString() });
@@ -3367,7 +3627,7 @@ window.addEventListener('online',  () => {
   _estaOnline = true;
   _mostrarBannerOffline(true);
   // Se há itens na fila, tenta enviar automaticamente após 2s
-  if (_tamanhoFila() > 0) setTimeout(processarFilaOffline, 2000);
+  if (_tamanhoFila() > 0) _setTimer('fila-auto', processarFilaOffline, 2000); // [B1]
 });
 window.addEventListener('offline', () => {
   _estaOnline = false;
@@ -3385,7 +3645,7 @@ function _mostrarQR(prefixo, urlVerif) {
   const link  = document.getElementById((prefixo) + '-qr-link');
   if (!box || !img || !link) return;
   img.src  = qrSrc;
-  link.href = urlVerif;
+  if (/^https?:\/\//.test(urlVerif)) link.href = urlVerif; // [A3] Bloqueio de javascript: URIs
   box.style.display = '';
 }
 
@@ -3400,7 +3660,7 @@ let _atribData  = [];   // [{ professor, componente, turma }]
 // Alterna aba de configurações
 function cfg_aba(id) {
   document.querySelectorAll('.cfg-tab').forEach((btn, i) => {
-    const ids = ['escola','professores','atribuicoes','pontuacao','bncc'];
+    const ids = ['escola','professores','atribuicoes','pontuacao','bncc','logs'];
     btn.classList.toggle('ativo', ids[i] === id);
   });
   document.querySelectorAll('.cfg-painel').forEach(p => p.classList.remove('ativo'));
@@ -3569,8 +3829,8 @@ function _renderizarEmailsList() {
   }
   lista.innerHTML = '<table class="cfg-table">' + "\n" + '    <thead><tr><th>Professor(a)</th><th>E-mail Google</th></tr></thead>' + "\n" + '    <tbody>' + (_chipsData.professores.map((p, idx) => '<tr>' + "\n" + '      <td style="width:40%">' + (esc(p)) + '</td>' + "\n" + '      <td><input type="email" value="' + (esc(_emailsMap[p]||'')) + '" placeholder="email@escola.edu.br"' + "\n" + '        data-prof-index="' + (idx) + '"' + "\n" + '        style="max-width:300px"></td>' + "\n" + '    </tr>').join('')) + '' + "\n" + '    </tbody></table>';
   
-  // Adiciona event listeners aos inputs de email
-  setTimeout(() => {
+  // Adiciona event listeners aos inputs de email [B1]
+  _setTimer('emails-lista', () => {
     lista.querySelectorAll('input[type=email]').forEach((input, idx) => {
       const professor = _chipsData.professores[idx];
       if (professor) {
@@ -3776,8 +4036,62 @@ function testarBNCC() {
       }
       lista.innerHTML = res.map(h => '' + "\n" + '        <div class="historico-item">' + "\n" + '          <div class="historico-info">' + "\n" + '            <strong>' + (esc(h.codigo)) + '' + "\n" + '              <span class="bncc-fonte-badge ' + (h.fonte === 'API BNCC oficial' ? 'api' : 'local') + '">' + "\n" + '                ' + (h.fonte === 'API BNCC oficial' ? 'API oficial' : 'cache local') + '' + "\n" + '              </span>' + "\n" + '            </strong>' + "\n" + '            <span>' + (esc(h.componente)) + ' — ' + (esc(h.segmento)) + '</span>' + "\n" + '            <span style="font-size:.82rem;color:var(--texto-s)">' + (esc(h.descricao)) + '</span>' + "\n" + '          </div>' + "\n" + '        </div>').join('');
     })
-    .withFailureHandler(e => { lista.innerHTML = '<div class="historico-vazio">Erro: ' + (e.message) + '</div>'; })
+    .withFailureHandler(e => { lista.innerHTML = '<div class="historico-vazio">Erro: ' + esc(e.message) + '</div>'; }) // [A1] XSS fix
     .buscarHabilidadesBNCC(query);
+}
+
+// ─── Aba Logs [V10-D1] ─────────────────────────────────
+function carregarLogs() {
+  const corpo = document.getElementById('logs-corpo');
+  if (!corpo) return;
+  const filtro = (document.getElementById('logs-filtro-nivel') || {}).value || '';
+  corpo.innerHTML = '<div class="historico-vazio">Carregando logs…</div>';
+
+  if (typeof google === 'undefined') {
+    corpo.innerHTML = '<div class="historico-vazio">Logs disponíveis apenas no ambiente do Apps Script.</div>';
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(rows) {
+      if (!rows || rows.length === 0) {
+        corpo.innerHTML = '<div class="historico-vazio">Nenhum registro de log encontrado.</div>';
+        return;
+      }
+      const filtered = filtro ? rows.filter(r => r.nivel === filtro) : rows;
+      if (filtered.length === 0) {
+        corpo.innerHTML = '<div class="historico-vazio">Nenhum log para o nível selecionado.</div>';
+        return;
+      }
+      const cores = { ERRO: '#fee2e2', AVISO: '#fef9c3', INFO: '#f0fdf4' };
+      const txtCor = { ERRO: '#c0392b', AVISO: '#d97706', INFO: '#2d7a4f' };
+      corpo.innerHTML = '<div style="overflow:auto;max-height:460px;border:1.5px solid var(--borda);border-radius:8px">'
+        + '<table style="width:100%;border-collapse:collapse;font-size:.82rem">'
+        + '<thead><tr style="background:var(--borda)">'
+        + '<th style="padding:7px 10px;text-align:left">Data</th>'
+        + '<th style="padding:7px 10px;text-align:left">Nível</th>'
+        + '<th style="padding:7px 10px;text-align:left">Função</th>'
+        + '<th style="padding:7px 10px;text-align:left">Mensagem</th>'
+        + '<th style="padding:7px 10px;text-align:left">Usuário</th>'
+        + '</tr></thead><tbody>'
+        + filtered.map(function(r) {
+          const bg = cores[r.nivel] || '';
+          const tc = txtCor[r.nivel] || 'inherit';
+          return '<tr style="background:' + bg + ';border-top:1px solid var(--borda)">'
+            + '<td style="padding:6px 10px;white-space:nowrap">' + esc(r.data) + '</td>'
+            + '<td style="padding:6px 10px;font-weight:700;color:' + tc + '">' + esc(r.nivel) + '</td>'
+            + '<td style="padding:6px 10px;font-family:monospace">' + esc(r.funcao) + '</td>'
+            + '<td style="padding:6px 10px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(r.msg) + '">' + esc(r.msg) + '</td>'
+            + '<td style="padding:6px 10px">' + esc(r.usuario) + '</td>'
+            + '</tr>';
+        }).join('')
+        + '</tbody></table></div>'
+        + '<p style="font-size:.78rem;color:var(--texto-s);margin-top:6px">Mostrando ' + filtered.length + ' registros mais recentes.</p>';
+    })
+    .withFailureHandler(function(e) {
+      corpo.innerHTML = '<div class="historico-vazio" style="color:#c0392b">Erro ao carregar logs: ' + esc(e.message) + '</div>';
+    })
+    .getLogs(100);
 }
 
 // ─── BNCC dropdown com badge de fonte ───────────────────
@@ -3804,9 +4118,32 @@ function _renderDropBNCC(resultados, linhaId) {
 }
 
 // ═══════════════════════════════════════════════════════
+// [B1] GERENCIADOR CENTRAL DE TIMERS — evita vazamento de memória
+// ═══════════════════════════════════════════════════════
+const _timers = {};
+function _setTimer(id, fn, ms) {
+  if (_timers[id]) clearTimeout(_timers[id]);
+  _timers[id] = setTimeout(function() { delete _timers[id]; fn(); }, ms);
+}
+
+// ═══════════════════════════════════════════════════════
 // INICIALIZAÇÃO
 // ═══════════════════════════════════════════════════════
 (function init() {
+  // [A5] Captura global de erros JS e envia ao backend para registro
+  window.addEventListener('error', function(e) {
+    if (typeof google === 'undefined') return;
+    google.script.run.logErroJS({
+      msg: e.message, arquivo: e.filename,
+      linha: e.lineno, coluna: e.colno,
+      stack: e.error ? String(e.error.stack).substring(0, 500) : ''
+    });
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    if (typeof google === 'undefined') return;
+    google.script.run.logErroJS({ msg: String(e.reason), tipo: 'Promise' });
+  });
+
   restaurarTema();
   renderizarMesesAnuais();
   adicionarLinhaTrimestral();
@@ -3821,8 +4158,8 @@ function _renderDropBNCC(resultados, linhaId) {
   ativarAutoSave('semanal');
   ativarAutoSave('anual');
 
-  // Restaura rascunhos ao abrir
-  setTimeout(() => {
+  // Restaura rascunhos ao abrir [B1]
+  _setTimer('restaurar-rascunho', () => {
     restaurarRascunho('trimestral');
     restaurarRascunho('semanal');
     restaurarRascunho('anual');
@@ -3834,8 +4171,8 @@ function _renderDropBNCC(resultados, linhaId) {
   // [F2-4] Carrega perfil do usuário
   carregarPerfil();
 
-  // [F2-2] Pré-carrega calendário em background (silencioso — sem overlay)
-  setTimeout(() => carregarCalendario(false, true), 1500);
+  // [F2-2] Pré-carrega calendário em background (silencioso — sem overlay) [B1]
+  _setTimer('pre-carregar-cal', () => carregarCalendario(false, true), 1500);
 
   // [F4-1] Inicializa estado offline
   _estaOnline = navigator.onLine;
@@ -3844,7 +4181,7 @@ function _renderDropBNCC(resultados, linhaId) {
 
   // Se há itens na fila e está online, notifica
   if (navigator.onLine && _tamanhoFila() > 0) {
-    setTimeout(() => {
+    _setTimer('notif-fila', () => {
       toast('Você tem ' + (_tamanhoFila()) + ' planejamento(s) na fila offline. Clique em "📤 Enviar" para processar.', 'aviso');
       _atualizarUIFila();
     }, 2000);

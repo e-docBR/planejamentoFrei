@@ -341,9 +341,9 @@ function getCadastros() {
     vals.slice(1).forEach(row => {
       // Validação robusta de dados
       if (!row || row.length < 2) return;
-      const tipo  = String(row[0] || '').trim().toUpperCase();
-      const valor = String(row[1] || '').trim();
-      const email = String(row[2] || '').trim();
+      const tipo  = String(row[SHEET_COLS.CADASTROS.TIPO]  || '').trim().toUpperCase();
+      const valor = String(row[SHEET_COLS.CADASTROS.NOME]  || '').trim();
+      const email = String(row[SHEET_COLS.CADASTROS.EMAIL] || '').trim();
       if (!valor || !tipo) return;
 
       // Normaliza espaços duplicados e caracteres especiais invisíveis
@@ -768,61 +768,81 @@ function getDadosPainel() {
         // Validação robusta de dados
         if (!row || row.length === 0 || !row[0]) return;
         
-        const professor = String(row[1] || '').trim();
+        const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
+        const professor = String(row[C.PROFESSOR] || '').trim();
         if (professor) comEntrega.add(professor);
-        
+
         // Conta semanais do mês atual
         // [V9-22] BUG-DATE: normaliza Date objects do Sheets antes de usar substring
         if (tipo === ABA.SEMANAL) {
-          const rawData = row[0];
+          const rawData = row[C.DATA];
           const dataCel = rawData instanceof Date
             ? Utilities.formatDate(rawData, CONFIG.FUSO, 'dd/MM/yyyy')
             : String(rawData || '');
           const mesReg  = dataCel.length >= 5 ? dataCel.substring(3, 5) : '';
           if (mesReg === mesAtual) semanaisNoMes++;
         }
-        
-        const r = { 
-          tipo, 
-          data: row[0] || '', 
-          professor: professor, 
-          status: "Entregue" 
+
+        const r = {
+          tipo,
+          data: row[C.DATA] || '',
+          professor: professor,
+          status: "Entregue"
         };
-        
+
         if (tipo === ABA.TRIMESTRAL) {
-          Object.assign(r, { 
-            anoTurma: String(row[2] || '').trim(), 
-            componente: String(row[3] || '').trim(), 
-            trimestre: String(row[4] || '').trim(), 
-            url: String(row[5] || '').trim() 
+          Object.assign(r, {
+            anoTurma:   String(row[C.ANO_TURMA]  || '').trim(),
+            componente: String(row[C.COMPONENTE] || '').trim(),
+            trimestre:  String(row[C.TRIMESTRE]  || '').trim(),
+            url:        String(row[C.URL]         || '').trim()
           });
         } else if (tipo === ABA.SEMANAL) {
-          Object.assign(r, { 
-            turmas: String(row[2] || '').trim(), 
-            componente: String(row[3] || '').trim(), 
-            mes: String(row[4] || '').trim(), 
-            semanaInicio: String(row[5] || '').trim(), 
-            url: String(row[7] || '').trim() 
+          Object.assign(r, {
+            turmas:      String(row[C.TURMAS]       || '').trim(),
+            componente:  String(row[C.COMPONENTE]   || '').trim(),
+            mes:         String(row[C.MES]          || '').trim(),
+            semanaInicio:String(row[C.SEMANA_INICIO]|| '').trim(),
+            url:         String(row[C.URL]          || '').trim()
           });
         } else {
-          Object.assign(r, { 
-            anoTurma: String(row[2] || '').trim(), 
-            componente: String(row[3] || '').trim(), 
-            url: String(row[4] || '').trim() 
+          Object.assign(r, {
+            anoTurma:   String(row[C.ANO_TURMA]  || '').trim(),
+            componente: String(row[C.COMPONENTE] || '').trim(),
+            url:        String(row[C.URL]         || '').trim()
           });
         }
         registros.push(r);
       });
     });
 
+    // [D3] Enriquecer registros com status de aprovação da aba Aprovacoes
+    const abaAprov = ss.getSheetByName(ABA.APROVACOES);
+    const aprovMap = {}; // chave: "tipo|professor|componente|periodo" → última decisão
+    if (abaAprov && abaAprov.getLastRow() > 1) {
+      const CA = SHEET_COLS.APROVACOES;
+      abaAprov.getDataRange().getValues().slice(1).forEach(row => {
+        const chave = [String(row[CA.TIPO]||''), String(row[CA.PROFESSOR]||''), String(row[CA.COMPONENTE]||''), String(row[CA.PERIODO]||'')].join('|');
+        const decisao = String(row[CA.DECISAO] || '').trim();
+        if (decisao) aprovMap[chave] = decisao === 'APROVADO' ? 'Aprovado' : 'Revisão solicitada';
+      });
+    }
+    registros.forEach(r => {
+      const periodo = r.trimestre ? r.trimestre + 'º Tri' : r.semanaInicio ? 'Semana ' + r.semanaInicio : '';
+      const chave = [r.tipo, r.professor, r.componente || '', periodo].join('|');
+      r.status = aprovMap[chave] || 'Entregue';
+    });
+
     const totalProfessores = cadastros.professores.filter(p => p !== '— Configure a aba Cadastros na planilha —').length;
     const totalPendentes   = cadastros.professores.filter(p => !comEntrega.has(p) && p !== '— Configure a aba Cadastros na planilha —').length;
+    const totalAprovados   = registros.filter(r => r.status === 'Aprovado').length;
 
     const dados = {
       registros,
       totalEntregues:   registros.length,
       totalPendentes,
       totalProfessores,
+      totalAprovados,
       semanaisNoMes,
       geradoEm: ts('HH:mm'),
     };
@@ -867,7 +887,8 @@ function gerarRelatorioPendencias() {
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
-      aba.getDataRange().getValues().slice(1).forEach(row => { if (row[1]) comEntrega.add(row[1]); });
+      const CP = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
+      aba.getDataRange().getValues().slice(1).forEach(row => { if (row[CP.PROFESSOR]) comEntrega.add(row[CP.PROFESSOR]); });
     });
 
     const pendentes = cadastros.professores.filter(p => !comEntrega.has(p));
@@ -887,6 +908,83 @@ function gerarRelatorioPendencias() {
     return { sucesso: true, url: ssPend.getUrl() };
   } catch(e) {
     log('ERRO', 'gerarRelatorioPendencias', e.message);
+    return { sucesso: false, erro: e.message };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  [V10-D4] RELATÓRIO MENSAL POR PROFESSOR
+// ═══════════════════════════════════════════════════════════
+/**
+ * Gera uma planilha com todos os planejamentos de um professor em um mês.
+ * payload: { professor, mes, ano }  — mes no formato "MM" (ex: "03"), ano "YYYY"
+ */
+function gerarRelatorioMensalProfessor(payload) {
+  const sess = _verificarPermissao('gerarRelatorioMensalProfessor');
+  // Professor só pode gerar seu próprio relatório
+  if (sess.perfil === 'professor' && sess.nome !== payload.professor) {
+    return { sucesso: false, erro: 'Você só pode gerar relatório do seu próprio período.' };
+  }
+  try {
+    const { professor, mes, ano } = payload;
+    if (!professor || !mes || !ano) return { sucesso: false, erro: 'Parâmetros incompletos.' };
+
+    const ss    = abrirPlanilha();
+    const linhas = [];
+
+    [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
+      const aba = ss.getSheetByName(tipo);
+      if (!aba || aba.getLastRow() < 2) return;
+      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
+      aba.getDataRange().getValues().slice(1).forEach(row => {
+        if (String(row[C.PROFESSOR] || '').trim() !== professor) return;
+        const rawData = row[C.DATA];
+        const dataStr = rawData instanceof Date
+          ? Utilities.formatDate(rawData, CONFIG.FUSO, 'dd/MM/yyyy')
+          : String(rawData || '');
+        const m = dataStr.length >= 5 ? dataStr.substring(3, 5) : '';
+        const a = dataStr.length >= 10 ? dataStr.substring(6, 10) : '';
+        if (m !== mes || a !== ano) return;
+        linhas.push({
+          tipo,
+          data: dataStr,
+          componente: String(row[C.COMPONENTE] || '').trim(),
+          periodo: tipo === ABA.TRIMESTRAL ? String(row[C.TRIMESTRE] || '').trim() + 'º Tri'
+                 : tipo === ABA.SEMANAL    ? 'Semana ' + String(row[C.SEMANA_INICIO] || '').trim()
+                 : 'Anual',
+          turma: tipo === ABA.SEMANAL ? String(row[C.TURMAS] || '').trim() : String(row[C.ANO_TURMA] || '').trim(),
+          url: String(row[C.URL] || '').trim(),
+        });
+      });
+    });
+
+    const mesesNome = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const nomePlanilha = `Relatorio_${professor.split(' ')[0]}_${mesesNome[parseInt(mes,10)]}_${ano}`;
+    const ssRel = SpreadsheetApp.create(nomePlanilha);
+    const aba   = ssRel.getActiveSheet();
+    aba.setName('Relatório');
+
+    aba.appendRow([`Relatório de Planejamentos — ${professor}`]);
+    aba.appendRow([`Período: ${mesesNome[parseInt(mes,10)]} de ${ano} | Gerado em: ${ts('dd/MM/yyyy HH:mm')}`]);
+    aba.appendRow([]);
+    aba.appendRow(['Tipo','Data','Componente','Turma/Ano','Período','Link PDF']);
+    aba.getRange(4, 1, 1, 6).setFontWeight('bold').setBackground('#1a3a6b').setFontColor('white');
+    aba.getRange(1, 1).setFontSize(13).setFontWeight('bold');
+
+    if (linhas.length === 0) {
+      aba.appendRow(['Nenhum planejamento entregue neste período.']);
+    } else {
+      linhas.forEach(l => aba.appendRow([l.tipo, l.data, l.componente, l.turma, l.periodo, l.url]));
+    }
+    aba.appendRow([]);
+    aba.appendRow([`Total de planejamentos: ${linhas.length}`]);
+    aba.autoResizeColumns(1, 6);
+
+    DriveApp.getFolderById(CONFIG.PASTA_ID).addFile(DriveApp.getFileById(ssRel.getId()));
+    log('INFO', 'gerarRelatorioMensalProfessor', `${linhas.length} registros — ${professor} — ${mes}/${ano}`);
+    return { sucesso: true, url: ssRel.getUrl(), total: linhas.length };
+  } catch(e) {
+    log('ERRO', 'gerarRelatorioMensalProfessor', e.message);
     return { sucesso: false, erro: e.message };
   }
 }
@@ -984,10 +1082,11 @@ function _paginaVerificacao(id) {
       return HtmlService.createHtmlOutput(_htmlVerifErro(id, 'Registro de verificação não encontrado.'));
     }
 
+    const CV   = SHEET_COLS.VERIFICACAO;
     const vals = aba.getDataRange().getValues();
-    const reg  = vals.slice(1).find(row => String(row[0] || '').trim().toUpperCase() === idSanitizado.toUpperCase());
+    const reg  = vals.slice(1).find(row => String(row[CV.ID] || '').trim().toUpperCase() === idSanitizado.toUpperCase());
 
-    if (!reg || !reg[0]) {
+    if (!reg || !reg[CV.ID]) {
       return HtmlService.createHtmlOutput(_htmlVerifErro(id, 'Documento não encontrado no registro da escola.'));
     }
 
@@ -1356,6 +1455,42 @@ function log(nivel, funcao, mensagem, usuario) {
   } finally {
     if (lockObtido) lock.releaseLock();
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  [V10-1] logErroJS: recebe erros JS do frontend e registra na aba Logs
+// ═══════════════════════════════════════════════════════════
+function logErroJS(payload) {
+  // Sem _verificarPermissao — pode ocorrer antes da autenticação
+  const email = Session.getActiveUser().getEmail() || 'anônimo';
+  const partes = [payload.msg || ''];
+  if (payload.arquivo) partes.push(payload.arquivo + ':' + (payload.linha || '?'));
+  if (payload.stack)   partes.push('Stack: ' + payload.stack);
+  if (payload.tipo)    partes.push('Tipo: ' + payload.tipo);
+  const msg = '[JS] ' + partes.join(' | ');
+  log('ERRO', 'frontend', msg, email);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  [V10-2] getLogs: retorna últimos N logs (apenas coordenação)
+// ═══════════════════════════════════════════════════════════
+function getLogs(limite) {
+  _verificarPermissao('getLogs');
+  const ss  = abrirPlanilha();
+  const aba = ss.getSheetByName(ABA.LOGS);
+  if (!aba || aba.getLastRow() < 2) return [];
+  const limite_ = Math.min(limite || 100, 200);
+  const totalLinhas = aba.getLastRow() - 1;
+  const rows = aba.getRange(2, 1, totalLinhas, 5).getValues();
+  return rows.slice(-limite_).reverse().map(function(r) {
+    return {
+      data:    String(r[0]),
+      nivel:   String(r[1]),
+      funcao:  String(r[2]),
+      msg:     String(r[3]),
+      usuario: String(r[4])
+    };
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2057,9 +2192,9 @@ function getHistoricoComLinhas(professor) {
       const C = SHEET_COLS[tipo.toUpperCase()] || {};
       const vals = aba.getDataRange().getValues();
       vals.slice(1).forEach((row, i) => {
-        if (!row[1] || row[1] !== nomeFinal) return;
+        if (!row[C.PROFESSOR] || row[C.PROFESSOR] !== nomeFinal) return;
         const linhaIdx = i + 2; // +1 header, +1 base-1
-        const r = { tipo, data: row[0], professor: row[1], linhaIdx };
+        const r = { tipo, data: row[C.DATA], professor: row[C.PROFESSOR], linhaIdx };
         if (tipo === ABA.TRIMESTRAL) {
           Object.assign(r, {
             anoTurma:   row[SHEET_COLS.TRIMESTRAL.ANO_TURMA],
@@ -2289,6 +2424,18 @@ function _mesLabel(delta) {
  * Encapsulado separado do getDadosPainel para não inflar o cache principal.
  */
 function getDadosGraficos() {
+  // [C2] Cache de 1 hora via CacheService — gráficos não precisam de dados em tempo real
+  const CACHE_KEY = 'getDadosGraficos_v10';
+  const CACHE_TTL = 3600; // segundos
+  try {
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get(CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed) return parsed;
+    }
+  } catch(e) { /* falha silenciosa — continua sem cache */ }
+
   try {
     const ss  = abrirPlanilha();
     const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -2298,64 +2445,59 @@ function getDadosGraficos() {
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
+      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
       aba.getDataRange().getValues().slice(1).forEach(row => {
-        if (!row[0]) return;
-        const dataStr = String(row[0]);
-        // Extrai mês do formato dd/MM/yyyy
+        if (!row[C.DATA]) return;
+        const dataStr = row[C.DATA] instanceof Date
+          ? Utilities.formatDate(row[C.DATA], CONFIG.FUSO, 'dd/MM/yyyy')
+          : String(row[C.DATA]);
         const m = parseInt(dataStr.substring(3,5), 10);
         if (m >= 1 && m <= 12) porMes[m-1]++;
       });
     });
 
     // Entregas por tipo
-    const porTipo = {
-      Trimestral: 0,
-      Semanal:    0,
-      Anual:      0,
-    };
+    const porTipo = { Trimestral: 0, Semanal: 0, Anual: 0 };
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
-      const count = Math.max(0, aba.getLastRow() - 1);
-      porTipo[tipo] = count;
+      porTipo[tipo] = Math.max(0, aba.getLastRow() - 1);
     });
 
-    // Aprovações vs pendentes
-    const cadastros   = getCadastros();
-    const comEntrega  = new Set();
+    // Professores com/sem entrega
+    const cadastros  = getCadastros();
+    const comEntrega = new Set();
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
-      aba.getDataRange().getValues().slice(1).forEach(row => { if (row[1]) comEntrega.add(row[1]); });
+      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
+      aba.getDataRange().getValues().slice(1).forEach(row => { if (row[C.PROFESSOR]) comEntrega.add(row[C.PROFESSOR]); });
     });
-    const totalProf  = cadastros.professores.length;
-    const comPlano   = comEntrega.size;
-    const semPlano   = Math.max(0, totalProf - comPlano);
+    const totalProf = cadastros.professores.length;
+    const comPlano  = comEntrega.size;
+    const semPlano  = Math.max(0, totalProf - comPlano);
 
-    // Top 5 professores mais pontuais (mais entregas)
+    // Top 5 professores (mais entregas)
     const contProf = {};
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
+      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
       aba.getDataRange().getValues().slice(1).forEach(row => {
-        if (!row[1]) return;
-        contProf[row[1]] = (contProf[row[1]] || 0) + 1;
+        if (!row[C.PROFESSOR]) return;
+        contProf[row[C.PROFESSOR]] = (contProf[row[C.PROFESSOR]] || 0) + 1;
       });
     });
     const top5 = Object.entries(contProf)
-      .sort((a,b) => b[1]-a[1])
-      .slice(0,5)
+      .sort((a,b) => b[1]-a[1]).slice(0,5)
       .map(([nome, total]) => ({ nome: nome.split(' ')[0], total }));
 
-    return {
-      sucesso:   true,
-      meses,
-      porMes,
-      porTipo,
-      comPlano,
-      semPlano,
-      top5,
-    };
+    const resultado = { sucesso: true, meses, porMes, porTipo, comPlano, semPlano, top5 };
+
+    // Persiste no cache
+    try { CacheService.getScriptCache().put(CACHE_KEY, JSON.stringify(resultado), CACHE_TTL); } catch(e) { /* quota */ }
+
+    return resultado;
   } catch(e) {
     log('ERRO', 'getDadosGraficos', e.message);
     return { sucesso: false, erro: e.message };
