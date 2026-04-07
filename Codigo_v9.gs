@@ -19,6 +19,22 @@
 //  [V9-7] _paginaVerificacao: tratamento seguro quando aba Verificacao tem
 //         colunas extras (desestruturação defensiva)
 //
+//  v9 (patch 2026-04-06) — CORREÇÕES DE SEGURANÇA E PERFORMANCE:
+//  [V9-21] SEC-HPA: getHistoricoComLinhas, getAprovacoes, getEstatisticasProfessor e
+//          carregarParaEdicao agora chamam _verificarPermissao() — professor só acessa
+//          próprios dados, coordenação mantém acesso irrestrito.
+//          getHistoricoComLinhas usa SHEET_COLS em vez de índices hardcoded (QUALITY-IDX).
+//  [V9-22] BUG-DATE: getDadosPainel normaliza Date objects retornados pelo Sheets antes
+//          de usar substring — evita mês errado no contador de semanais.
+//  [V9-23] PERF-CACHE: getCadastros() com cache de 5 min via CacheService; cache
+//          invalidado em _invalidarCachePainel() junto com o cache do painel.
+//  [V9-24] BUG-EMAIL: _notificarDecisao valida formato do e-mail (@) antes de enviar
+//          e loga aviso quando e-mail está ausente/inválido.
+//  [SEC-INFO] Stack trace removido da página de erro pública do doGet — expõe apenas
+//             a mensagem, não a estrutura interna do código.
+//  [V9-25] Boas-vindas: _enviarBoasVindasProfessor() envia e-mail personalizado ao
+//          professor no 1º acesso, com link da pasta, instruções de uso e link do sistema.
+//
 //  v9 (patch 2026-04) — CORREÇÕES ADICIONAIS:
 //  [V9-8]  _validarConfig(): bloqueia operações se CONFIG ainda tem placeholders;
 //          doGet() exibe mensagem clara de configuração pendente
@@ -221,10 +237,7 @@ function doGet(e) {
           <div class="erro-body">
             <p><strong>Ocorreu um erro inesperado ao carregar o sistema:</strong></p>
             
-            <div class="erro-mensagem">${erroGlobal.message}
-
-Stack trace:
-${erroGlobal.stack}</div>
+            <div class="erro-mensagem">${erroGlobal.message}</div>
             
             <div class="erro-ajuda">
               <h3>📋 Como resolver:</h3>
@@ -301,7 +314,15 @@ function include(filename) {
 // ═══════════════════════════════════════════════════════════
 //  [BUG-1] CADASTROS LIDOS DA PLANILHA (não mais hardcoded)
 // ═══════════════════════════════════════════════════════════
+// [V9-23] PERF-CACHE: cache de 5 minutos para evitar múltiplas leituras ao Sheets por requisição
+const _CACHE_KEY_CADASTROS = 'cadastros_v1';
+
 function getCadastros() {
+  // [V9-23] Tenta retornar do cache antes de ler a planilha
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(_CACHE_KEY_CADASTROS);
+  if (hit) { try { return JSON.parse(hit); } catch(e) { /* cache inválido, recalcula */ } }
+
   try {
     const ss  = abrirPlanilha();
     let aba   = ss.getSheetByName(ABA.CADASTROS);
@@ -324,13 +345,13 @@ function getCadastros() {
       const valor = String(row[1] || '').trim();
       const email = String(row[2] || '').trim();
       if (!valor || !tipo) return;
-      
+
       // Normaliza espaços duplicados e caracteres especiais invisíveis
       const valorNormalizado = valor.replace(/\s+/g, ' ').trim();
-      
-      if (tipo === 'PROFESSOR') { 
-        professores.push(valorNormalizado); 
-        if (email && email.includes('@')) emails[valorNormalizado] = email.toLowerCase(); 
+
+      if (tipo === 'PROFESSOR') {
+        professores.push(valorNormalizado);
+        if (email && email.includes('@')) emails[valorNormalizado] = email.toLowerCase();
       }
       if (tipo === 'COMPONENTE') componentes.push(valorNormalizado);
       if (tipo === 'TURMA')      turmas.push(valorNormalizado);
@@ -341,12 +362,17 @@ function getCadastros() {
     const compUnicos = [...new Set(componentes)];
     const turmUnicos = [...new Set(turmas)];
 
-    return { 
-      professores: profUnicos, 
-      componentes: compUnicos, 
-      turmas: turmUnicos, 
-      emails 
+    const resultado = {
+      professores: profUnicos,
+      componentes: compUnicos,
+      turmas: turmUnicos,
+      emails
     };
+
+    // [V9-23] Salva no cache por 5 minutos
+    try { cache.put(_CACHE_KEY_CADASTROS, JSON.stringify(resultado), 300); } catch(e) { /* não crítico */ }
+
+    return resultado;
   } catch(e) {
     log('ERRO', 'getCadastros', e.message);
     // Fallback mínimo para o sistema não parar
@@ -746,8 +772,12 @@ function getDadosPainel() {
         if (professor) comEntrega.add(professor);
         
         // Conta semanais do mês atual
+        // [V9-22] BUG-DATE: normaliza Date objects do Sheets antes de usar substring
         if (tipo === ABA.SEMANAL) {
-          const dataCel = String(row[0] || '');
+          const rawData = row[0];
+          const dataCel = rawData instanceof Date
+            ? Utilities.formatDate(rawData, CONFIG.FUSO, 'dd/MM/yyyy')
+            : String(rawData || '');
           const mesReg  = dataCel.length >= 5 ? dataCel.substring(3, 5) : '';
           if (mesReg === mesAtual) semanaisNoMes++;
         }
@@ -816,8 +846,13 @@ function getDadosPainel() {
 }
 
 // Invalida o cache quando novos planejamentos são salvos
+// [V9-23] Invalida também o cache de cadastros para garantir consistência
 function _invalidarCachePainel() {
-  try { CacheService.getScriptCache().remove('painel_dados_v3'); } catch(e) {}
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.remove('painel_dados_v3');
+    cache.remove(_CACHE_KEY_CADASTROS);
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1420,12 +1455,15 @@ function _provisionarPastaProfessor(nome, emailProfessor) {
   pastaProfessor.createFolder('Anual');
   pastaProfessor.createFolder('Docs');
 
-  // [V7-2] Concede acesso ao professor como Editor
+  // [V7-2] Concede acesso ao professor como Editor na pasta pessoal
   try {
     pastaProfessor.addEditor(emailProfessor);
   } catch(e) {
     log('AVISO', '_provisionarPastaProfessor', `Falha ao conceder acesso a ${emailProfessor}: ${e.message}`);
   }
+
+  // [V9-26] Concede acesso de Visualizador à pasta raiz para o professor poder navegar
+  _concederAcessoPastaRaiz([emailProfessor]);
 
   // [V9-14] Concede acesso a coordenação como Viewer (não Editor) para evitar alteração acidental de PDFs
   CONFIG.EMAILS_COORDENACAO.forEach(emailCoord => {
@@ -1438,10 +1476,79 @@ function _provisionarPastaProfessor(nome, emailProfessor) {
     }
   });
 
+  // [V9-25] Envia e-mail de boas-vindas ao professor no 1º acesso
+  _enviarBoasVindasProfessor(nome, emailProfessor, pastaProfessor.getUrl());
+
   log('INFO', '_provisionarPastaProfessor',
     `Pasta criada: ${nomeDir} — acesso: ${emailProfessor} + coordenação`);
 
   return pastaProfessor;
+}
+
+/**
+ * [V9-25] Envia e-mail de boas-vindas ao professor quando sua pasta é criada pela 1ª vez.
+ * Apresenta o sistema, explica como usar e fornece os links relevantes.
+ */
+function _enviarBoasVindasProfessor(nome, emailProfessor, urlPasta) {
+  try {
+    if (!emailProfessor || !emailProfessor.includes('@')) return;
+
+    const escolaNome = _cfg('escola_nome', 'Colégio Municipal de 1º e 2º Graus de Itabatan');
+    const coordNome  = _cfg('coordenacao_nome', 'Coordenação Pedagógica');
+    const urlSistema = ScriptApp.getService().getUrl();
+    const ano        = _cfg('ano_letivo', String(CONFIG.ANO_LETIVO));
+
+    const assunto = `🎓 Bem-vindo(a) ao Sistema de Planejamento Escolar ${ano} — ${nome}`;
+
+    const corpo = [
+      `Olá, ${nome}!`,
+      ``,
+      `Sua conta foi ativada no Sistema de Planejamento Escolar do ${escolaNome}.`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `📂  SUA PASTA NO DRIVE`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `Uma pasta exclusiva foi criada para você no Google Drive, onde todos`,
+      `os seus planejamentos salvos ficarão armazenados com segurança.`,
+      ``,
+      `🔗 Acesse sua pasta aqui: ${urlPasta}`,
+      ``,
+      `A pasta contém subpastas organizadas por tipo:`,
+      `  📁 Trimestral — planejamentos trimestrais`,
+      `  📁 Semanal    — planejamentos semanais`,
+      `  📁 Anual      — planejamentos anuais`,
+      `  📁 Docs       — versões editáveis (Google Docs)`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `💻  COMO USAR O SISTEMA`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `1. Acesse o sistema pelo link abaixo com sua conta Google`,
+      `2. Escolha o tipo de planejamento (Trimestral, Semanal ou Anual)`,
+      `3. Preencha os campos e clique em "Salvar PDF"`,
+      `4. O documento é gerado com QR Code de autenticidade e`,
+      `   salvo automaticamente na sua pasta do Drive`,
+      `5. Você receberá um e-mail de confirmação a cada envio`,
+      ``,
+      `🔗 Acesse o sistema aqui: ${urlSistema}`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `ℹ️  INFORMAÇÕES IMPORTANTES`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `• Use sempre o mesmo e-mail Google para acessar o sistema`,
+      `• Seus planejamentos ficam visíveis para a coordenação após envio`,
+      `• Em caso de dúvidas, entre em contato com a ${coordNome}`,
+      ``,
+      `Bom trabalho e excelente ano letivo ${ano}!`,
+      ``,
+      `${escolaNome}`,
+      `${coordNome} — Sistema Automático`,
+    ].join('\n');
+
+    MailApp.sendEmail(emailProfessor, assunto, corpo);
+    log('INFO', '_enviarBoasVindasProfessor', `E-mail de boas-vindas enviado para ${emailProfessor}`);
+  } catch(e) {
+    log('AVISO', '_enviarBoasVindasProfessor', `Falha ao enviar boas-vindas para ${emailProfessor}: ${e.message}`);
+  }
 }
 
 /**
@@ -1841,8 +1948,11 @@ function instalarTriggerSemanal() {
  * Busca os dados de um registro pelo índice de linha em sua aba,
  * para o professor preencher o formulário de edição.
  * Retorna objeto com tipo + dados suficientes para recarregar o form.
+ * [V9-21] SEC-HPA: verifica permissão e garante que professor só edita próprios registros.
  */
 function carregarParaEdicao(tipo, linhaIdx) {
+  // [V9-21] Guard de segurança — professor só pode editar seus próprios registros
+  const sess = _verificarPermissao('carregarParaEdicao');
   try {
     const ss  = abrirPlanilha();
     const aba = ss.getSheetByName(tipo);
@@ -1850,6 +1960,12 @@ function carregarParaEdicao(tipo, linhaIdx) {
 
     const row = aba.getRange(linhaIdx, 1, 1, aba.getLastColumn()).getValues()[0];
     if (!row || !row[0]) return { sucesso: false, erro: 'Linha não encontrada.' };
+
+    // [V9-21] Professor não pode carregar registros de outros professores
+    if (sess.perfil === 'professor' && String(row[1] || '').trim() !== sess.nome) {
+      log('AVISO', 'carregarParaEdicao', `Tentativa de acesso não autorizado: ${sess.email} tentou editar registro de ${row[1]}`);
+      return { sucesso: false, erro: 'Sem permissão para editar este planejamento.' };
+    }
 
     let dados = {};
     if (tipo === ABA.TRIMESTRAL) {
@@ -1925,22 +2041,47 @@ function salvarEdicao(payload) {
 /**
  * Retorna todos os registros de um professor com número de linha,
  * para o histórico oferecer botão "Editar".
+ * [V9-21] SEC-HPA: professor só vê próprios dados; coordenação pode ver qualquer um.
+ * [V9-21] QUALITY-IDX: usa SHEET_COLS em vez de índices hardcoded.
  */
 function getHistoricoComLinhas(professor) {
+  // [V9-21] Guard de segurança — professor só vê próprio histórico
+  const sess = _verificarPermissao('getHistoricoComLinhas');
+  const nomeFinal = (sess.perfil === 'professor') ? sess.nome : professor;
   try {
     const ss  = abrirPlanilha();
     const res = [];
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
+      const C = SHEET_COLS[tipo.toUpperCase()] || {};
       const vals = aba.getDataRange().getValues();
       vals.slice(1).forEach((row, i) => {
-        if (!row[1] || row[1] !== professor) return;
+        if (!row[1] || row[1] !== nomeFinal) return;
         const linhaIdx = i + 2; // +1 header, +1 base-1
         const r = { tipo, data: row[0], professor: row[1], linhaIdx };
-        if (tipo === ABA.TRIMESTRAL) Object.assign(r, { anoTurma:row[2], componente:row[3], trimestre:row[4], url:row[5] });
-        else if (tipo === ABA.SEMANAL) Object.assign(r, { turmas:row[2], componente:row[3], mes:row[4], semanaInicio:row[5], url:row[7] });
-        else Object.assign(r, { anoTurma:row[2], componente:row[3], url:row[4] });
+        if (tipo === ABA.TRIMESTRAL) {
+          Object.assign(r, {
+            anoTurma:   row[SHEET_COLS.TRIMESTRAL.ANO_TURMA],
+            componente: row[SHEET_COLS.TRIMESTRAL.COMPONENTE],
+            trimestre:  row[SHEET_COLS.TRIMESTRAL.TRIMESTRE],
+            url:        row[SHEET_COLS.TRIMESTRAL.URL],
+          });
+        } else if (tipo === ABA.SEMANAL) {
+          Object.assign(r, {
+            turmas:       row[SHEET_COLS.SEMANAL.TURMAS],
+            componente:   row[SHEET_COLS.SEMANAL.COMPONENTE],
+            mes:          row[SHEET_COLS.SEMANAL.MES],
+            semanaInicio: row[SHEET_COLS.SEMANAL.SEMANA_INICIO],
+            url:          row[SHEET_COLS.SEMANAL.URL],
+          });
+        } else {
+          Object.assign(r, {
+            anoTurma:   row[SHEET_COLS.ANUAL.ANO_TURMA],
+            componente: row[SHEET_COLS.ANUAL.COMPONENTE],
+            url:        row[SHEET_COLS.ANUAL.URL],
+          });
+        }
         res.push(r);
       });
     });
@@ -2004,11 +2145,15 @@ function salvarAprovacao(payload) {
   }
 }
 
+// [V9-24] BUG-EMAIL: valida email do professor antes de tentar envio
 function _notificarDecisao(professor, componente, periodo, decisao, comentario) {
   try {
     const cadastros = getCadastros();
     const emailProf = cadastros.emails && cadastros.emails[professor];
-    if (!emailProf) return;
+    if (!emailProf || !emailProf.includes('@')) {
+      log('AVISO', '_notificarDecisao', `E-mail não encontrado ou inválido para "${professor}" — notificação não enviada.`);
+      return;
+    }
 
     const emoji  = decisao === 'APROVADO' ? '✅' : '🔄';
     const status = decisao === 'APROVADO' ? 'APROVADO' : 'AGUARDA REVISÃO';
@@ -2034,20 +2179,26 @@ function _notificarDecisao(professor, componente, periodo, decisao, comentario) 
 
 /**
  * Retorna decisões de aprovação para um professor específico ou todos (coordenação).
+ * [V9-21] SEC-HPA: professor só vê próprias aprovações; coordenação vê todas.
  */
 function getAprovacoes(filtro) {
+  // [V9-21] Guard de segurança — professor só vê próprias aprovações
+  const sess = _verificarPermissao('getAprovacoes');
+  const filtroFinal = (sess.perfil === 'professor') ? sess.nome : filtro;
   try {
     const ss  = abrirPlanilha();
     const aba = ss.getSheetByName(ABA.APROVACOES);
     if (!aba) return [];
 
+    const C = SHEET_COLS.APROVACOES;
     const vals = aba.getDataRange().getValues();
     return vals.slice(1)
-      .filter(row => !filtro || row[2] === filtro)
+      .filter(row => !filtroFinal || String(row[C.PROFESSOR] || '').trim() === String(filtroFinal).trim())
       .map(row => ({
-        data: row[0], tipo: row[1], professor: row[2], componente: row[3],
-        periodo: row[4], decisao: row[5], comentario: row[6],
-        url: row[7], revisor: row[8],
+        data: row[C.DATA_HORA], tipo: row[C.TIPO], professor: row[C.PROFESSOR],
+        componente: row[C.COMPONENTE], periodo: row[C.PERIODO],
+        decisao: row[C.DECISAO], comentario: row[C.COMENTARIO],
+        url: row[C.URL_PDF], revisor: row[C.REVISOR],
       }))
       .sort((a, b) => (b.data > a.data ? 1 : -1));
   } catch(e) {
@@ -2060,7 +2211,11 @@ function getAprovacoes(filtro) {
 //  [F3-4] ESTATÍSTICAS PESSOAIS DO PROFESSOR
 // ═══════════════════════════════════════════════════════════
 
+// [V9-21] SEC-HPA: professor só vê próprias estatísticas; coordenação pode ver qualquer um.
 function getEstatisticasProfessor(professor) {
+  // [V9-21] Guard de segurança — professor só vê próprias estatísticas
+  const sess = _verificarPermissao('getEstatisticasProfessor');
+  const nomeFinal = (sess.perfil === 'professor') ? sess.nome : professor;
   try {
     const ss   = abrirPlanilha();
     let totalTrimestral = 0, totalSemanal = 0, totalAnual = 0;
@@ -2073,7 +2228,7 @@ function getEstatisticasProfessor(professor) {
       const aba = ss.getSheetByName(tipo);
       if (!aba) return;
       aba.getDataRange().getValues().slice(1).forEach(row => {
-        if (row[1] !== professor) return;
+        if (row[1] !== nomeFinal) return;
         if (tipo === ABA.TRIMESTRAL) totalTrimestral++;
         else if (tipo === ABA.ANUAL) totalAnual++;
         else {
@@ -2089,7 +2244,7 @@ function getEstatisticasProfessor(professor) {
     const abaAprov = ss.getSheetByName(ABA.APROVACOES);
     if (abaAprov) {
       abaAprov.getDataRange().getValues().slice(1).forEach(row => {
-        if (row[2] !== professor) return;
+        if (row[2] !== nomeFinal) return;
         if (row[5] === 'APROVADO') aprovados++;
         else if (row[5] === 'REVISAO') revisoes++;
       });
@@ -2349,6 +2504,15 @@ function salvarCadastros(payload) {
     // Atualiza atribuições de turma/componente por professor
     if (payload.atribuicoes) _salvarAtribuicoes(ss, payload.atribuicoes);
 
+    // [V9-26] Concede acesso à pasta raiz para todos os professores com e-mail cadastrado
+    // Isso evita que o professor precise "solicitar acesso" ao Drive antes do 1º login
+    const emailsValidos = Object.values(payload.emails || {})
+      .map(e => String(e || '').trim().toLowerCase())
+      .filter(e => e && e.includes('@'));
+    if (emailsValidos.length > 0) {
+      _concederAcessoPastaRaiz(emailsValidos);
+    }
+
     // Invalida cache do painel
     _invalidarCachePainel();
     log('INFO', 'salvarCadastros', `Cadastros atualizados — ${(payload.professores||[]).length} professores`);
@@ -2356,6 +2520,28 @@ function salvarCadastros(payload) {
   } catch(e) {
     log('ERRO', 'salvarCadastros', e.message);
     return { sucesso: false, erro: e.message };
+  }
+}
+
+/**
+ * [V9-26] Concede acesso de Visualizador à pasta raiz do sistema para cada e-mail da lista.
+ * É chamado ao salvar cadastros e ao provisionar pasta individual.
+ * Idempotente: o Drive ignora silenciosamente se o acesso já existe.
+ */
+function _concederAcessoPastaRaiz(emails) {
+  try {
+    const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
+    emails.forEach(email => {
+      if (!email || !email.includes('@')) return;
+      try {
+        raiz.addViewer(email);
+        log('INFO', '_concederAcessoPastaRaiz', `Acesso de visualizador concedido na pasta raiz: ${email}`);
+      } catch(e) {
+        log('AVISO', '_concederAcessoPastaRaiz', `Falha ao conceder acesso a ${email}: ${e.message}`);
+      }
+    });
+  } catch(e) {
+    log('AVISO', '_concederAcessoPastaRaiz', `Pasta raiz inacessível: ${e.message}`);
   }
 }
 
@@ -2443,21 +2629,16 @@ function _cfg(chave, fallback) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  [V8-3] BNCC OFICIAL — API pública do MEC (bncc.ninja)
+//  [V8-3] BNCC OFICIAL — API pública (cientificar1992.pythonanywhere.com)
+//  NOTA: bncc.ninja foi descontinuada (ECONNREFUSED). Substituída em abr/2026.
 // ═══════════════════════════════════════════════════════════
 
 /**
- * Busca habilidades BNCC pela API pública bncc.ninja (dados oficiais do MEC).
- * Com cache local na planilha para evitar chamadas repetidas.
+ * Busca habilidades BNCC. Usa exclusivamente o banco local (aba BNCC da planilha),
+ * que é populado via importarHabilidadesBNCC() a partir da API cientificar1992.
  *
- * A API retorna habilidades filtradas por:
- *   - código (ex: EF07CI01)
- *   - texto da descrição (palavra-chave)
- *
- * Endpoint: https://bncc.ninja/api/habilidades?q=QUERY&limit=10
- * (API pública, sem autenticação, mantida por educadores brasileiros)
- *
- * Fallback: se a API estiver indisponível, busca na aba BNCC local.
+ * Fluxo: buscarHabilidadesBNCC → _buscarBNCC_API (retorna []) → _buscarBNCC_local
+ * Importação: importarHabilidadesBNCC → cientificar1992.pythonanywhere.com → _salvarHabilidadesLocal
  */
 function buscarHabilidadesBNCC(query) {
   if (!query || query.trim().length < 2) return [];
@@ -2476,53 +2657,9 @@ function buscarHabilidadesBNCC(query) {
 }
 
 function _buscarBNCC_API(query) {
-  // Cache de 10 minutos por query para não sobrecarregar a API
-  // [V9-11] Usa hash da query completa para evitar colisões em queries longas (corrige PERF-6)
-  const cacheKey = 'bncc_' + Utilities.computeDigest(
-    Utilities.DigestAlgorithm.MD5,
-    query.toLowerCase()
-  ).map(b => (b < 0 ? b + 256 : b).toString(16).padStart(2,'0')).join('');
-  const cache    = CacheService.getScriptCache();
-  const hit      = cache.get(cacheKey);
-  if (hit) {
-    try { return JSON.parse(hit); } catch(e) { /* continua */ }
-  }
-
-  // Tenta a API bncc.ninja (dados oficiais MEC)
-  const url = 'https://bncc.ninja/api/habilidades?q=' + encodeURIComponent(query) + '&limit=15';
-  let resp;
-  try {
-    resp = UrlFetchApp.fetch(url, {
-      muteHttpExceptions: true,
-      headers: { 'Accept': 'application/json' },
-      deadline: 10,
-    });
-  } catch(eFetch) {
-    // DNS error ou timeout — lança para o caller usar fallback local
-    throw new Error('API bncc.ninja indisponivel (DNS/timeout): ' + eFetch.message);
-  }
-
-  if (resp.getResponseCode() !== 200) throw new Error('API retornou ' + resp.getResponseCode());
-
-  const data = JSON.parse(resp.getContentText());
-  const itens = (data.habilidades || data.data || data || []).slice(0, 15);
-
-  // [V9-12] Ignora itens null/não-objeto antes de mapear (corrige BUG-9)
-  const resultado = itens.filter(h => h && typeof h === 'object').map(h => ({
-    codigo:     h.codigo    || h.code    || '',
-    componente: h.componente || h.area   || h.component || '',
-    segmento:   h.ano       || h.segment || h.serie     || '',
-    descricao:  h.descricao || h.description || h.text  || '',
-    fonte:      'API BNCC oficial',
-  })).filter(h => h.codigo && h.descricao);
-
-  // Salva no cache
-  try { cache.put(cacheKey, JSON.stringify(resultado), 600); } catch(e) { /* ignora */ }
-
-  // Salva novos resultados na aba BNCC local para uso offline futuro
-  _salvarHabilidadesLocal(resultado);
-
-  return resultado;
+  // bncc.ninja está offline (ECONNREFUSED). A busca usa exclusivamente o banco
+  // local (aba BNCC da planilha), populado via "Importar da API" nas Configurações.
+  return [];
 }
 
 function _buscarBNCC_local(query) {
@@ -2607,48 +2744,104 @@ function importarHabilidadesBNCC(componente, segmento) {
     return { sucesso: true, importadas: totalImportado, msg };
   }
 
-  const seg = segmento || 'EF';
-  try {
-    const url = 'https://bncc.ninja/api/habilidades?componente=' + encodeURIComponent(componente) +
-                '&segmento=' + encodeURIComponent(seg) + '&limit=200';
-    let resp;
-    try {
-      resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, deadline: 15 });
-    } catch(eFetch) {
-      // DNS error ou timeout — API indisponível
-      const msg = 'API bncc.ninja indisponivel (' + eFetch.message + '). ' +
-                  'Os dados locais continuam disponiveis para busca offline.';
-      log('AVISO', 'importarHabilidadesBNCC', msg);
-      Logger.log('AVISO: ' + msg);
-      return { sucesso: false, importadas: 0, erro: msg, apiIndisponivel: true };
-    }
+  // Mapeamento código (UI) → slug da disciplina na API cientificar1992.pythonanywhere.com
+  const COMP_MAP = {
+    'LP': 'lingua_portuguesa',
+    'MA': 'matematica',
+    'CI': 'ciencias',
+    'HI': 'historia',
+    'GE': 'geografia',
+    'AR': 'arte',
+    'EF': 'educacao_fisica',
+    'LI': 'lingua_inglesa',
+    'ER': 'ensino_religioso',
+  };
 
-    if (resp.getResponseCode() !== 200) {
-      throw new Error('HTTP ' + resp.getResponseCode());
-    }
-
-    const data = JSON.parse(resp.getContentText());
-    const itens = (data.habilidades || data.data || data || []);
-    const resultado = itens
-      .filter(h => h && typeof h === 'object')
-      .map(h => ({
-        codigo:     h.codigo     || h.code        || '',
-        componente: h.componente || h.area        || '',
-        segmento:   h.ano        || h.serie       || '',
-        descricao:  h.descricao  || h.description || h.text || '',
-      }))
-      .filter(h => h.codigo && h.descricao);
-
-    _salvarHabilidadesLocal(resultado);
-    const msg = 'Importadas ' + resultado.length + ' habilidades de ' + componente + '/' + seg;
-    log('INFO', 'importarHabilidadesBNCC', msg);
-    Logger.log(msg);
-    return { sucesso: true, importadas: resultado.length, msg };
-  } catch(e) {
-    log('ERRO', 'importarHabilidadesBNCC', e.message);
-    Logger.log('ERRO importarHabilidadesBNCC (' + componente + '): ' + e.message);
-    return { sucesso: false, erro: e.message };
+  const seg        = segmento || 'EF2';
+  const disciplina = COMP_MAP[componente];
+  if (!disciplina) {
+    return { sucesso: false, erro: 'Componente não reconhecido: ' + componente };
   }
+
+  // Seleciona o nível (fundamental ou médio) com base no segmento
+  const nivel = (seg === 'EM') ? 'bncc_medio' : 'bncc_fundamental';
+  const url   = 'https://cientificar1992.pythonanywhere.com/' + nivel +
+                '/disciplina/' + disciplina + '/';
+
+  let resp;
+  try {
+    resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, deadline: 20 });
+  } catch(eFetch) {
+    const msg = 'API BNCC indisponível (' + eFetch.message + '). Os dados locais continuam disponíveis para busca.';
+    log('AVISO', 'importarHabilidadesBNCC', msg);
+    Logger.log('AVISO: ' + msg);
+    return { sucesso: false, importadas: 0, erro: msg, apiIndisponivel: true };
+  }
+
+  if (resp.getResponseCode() !== 200) {
+    const msg = 'Componente "' + componente + '" não encontrado na API (HTTP ' + resp.getResponseCode() + ').';
+    log('AVISO', 'importarHabilidadesBNCC', msg);
+    return { sucesso: false, erro: msg };
+  }
+
+  let data;
+  try {
+    data = JSON.parse(resp.getContentText());
+  } catch(eParse) {
+    return { sucesso: false, erro: 'Resposta inválida da API: ' + eParse.message };
+  }
+
+  // A API retorna estrutura hierárquica:
+  //   { nome_disciplina, ano: [ { nome_ano, unidades_tematicas: [ { objeto_conhecimento: [ { habilidades: [ { nome_habilidade } ] } ] } ] } ] }
+  // Cada habilidade vem como string: "(EF07MA02) Descrição da habilidade..."
+  // Filtra por segmento: EF1 = anos 1–5 | EF2 = anos 6–9 | EM = sem filtro de ano
+  const anosIniciais = ['1','2','3','4','5'];
+  const anosFinais   = ['6','7','8','9'];
+  const filtroAnos   = (seg === 'EF1') ? anosIniciais : (seg === 'EF2') ? anosFinais : null;
+
+  const resultado = [];
+
+  (data.ano || []).forEach(function(anoObj) {
+    // Determina string de anos para filtro e label
+    const nomeAnoStr = Array.isArray(anoObj.nome_ano)
+      ? anoObj.nome_ano.join(', ')
+      : String(anoObj.nome_ano || '');
+
+    // Aplica filtro de segmento (pula se não pertence ao segmento selecionado)
+    if (filtroAnos) {
+      const pertence = filtroAnos.some(function(a) { return nomeAnoStr.includes(a + 'º'); });
+      if (!pertence) return;
+    }
+
+    (anoObj.unidades_tematicas || []).forEach(function(unidade) {
+      (unidade.objeto_conhecimento || []).forEach(function(obj) {
+        (obj.habilidades || []).forEach(function(h) {
+          const texto = h.nome_habilidade || '';
+          // Extrai código e descrição: "(EF07MA02) Descrição..."
+          const match = texto.match(/\(([A-Z]{2}\d{2}[A-Z]{2}\d{2})\)\s*([\s\S]+)/);
+          if (!match) return;
+          resultado.push({
+            codigo:     match[1],
+            componente: data.nome_disciplina || componente,
+            segmento:   nomeAnoStr,
+            descricao:  match[2].trim(),
+          });
+        });
+      });
+    });
+  });
+
+  if (resultado.length === 0) {
+    const msg = 'Nenhuma habilidade encontrada para ' + componente + '/' + seg +
+                '. Verifique se o segmento está correto ou tente outro componente.';
+    return { sucesso: false, erro: msg };
+  }
+
+  _salvarHabilidadesLocal(resultado);
+  const msg = 'Importadas ' + resultado.length + ' habilidades de ' + componente + '/' + seg;
+  log('INFO', 'importarHabilidadesBNCC', msg);
+  Logger.log(msg);
+  return { sucesso: true, importadas: resultado.length, msg };
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2902,11 +3095,10 @@ function healthCheck() {
     resultado.ok = false;
   }
 
-  // 5. API BNCC externa
+  // 5. API BNCC externa (cientificar1992.pythonanywhere.com — substitui bncc.ninja que está offline)
   try {
-    const resp = UrlFetchApp.fetch('https://bncc.ninja/api/habilidades?q=leitura&limit=1', {
+    const resp = UrlFetchApp.fetch('https://cientificar1992.pythonanywhere.com/bncc_fundamental/disciplina/matematica/', {
       muteHttpExceptions: true,
-      headers: { 'Accept': 'application/json' },
     });
     const code = resp.getResponseCode();
     resultado.servicos.bnccApi = { status: code === 200 ? 'OK' : 'AVISO', httpStatus: code };
@@ -3224,7 +3416,48 @@ function diagnosticoSistema() {
   // Imprime o relatório
   const textoCompleto = relatorio.join('\n');
   console.log(textoCompleto);
-  
+
   // Retorna também como objeto para poder ser chamado via google.script.run
   return textoCompleto;
+}
+
+/**
+ * [V9-26] CORREÇÃO RETROATIVA DE ACESSOS
+ * Execute esta função manualmente no editor do Apps Script (▶ Run)
+ * para conceder acesso à pasta raiz a TODOS os professores já cadastrados.
+ *
+ * Use quando:
+ *  - Professores estão pedindo acesso via Google Drive ("Solicitar acesso")
+ *  - Novos professores foram cadastrados antes desta correção existir
+ *  - Qualquer professor não consegue acessar a pasta no Drive
+ */
+function corrigirAcessosTodosProfessores() {
+  console.log('=== [V9-26] Iniciando correção de acessos ===');
+  try {
+    const cadastros = getCadastros();
+    const emails = Object.values(cadastros.emails || {})
+      .map(e => String(e || '').trim().toLowerCase())
+      .filter(e => e && e.includes('@'));
+
+    if (emails.length === 0) {
+      console.log('Nenhum e-mail de professor cadastrado encontrado.');
+      return;
+    }
+
+    console.log(`Concedendo acesso à pasta raiz para ${emails.length} professor(es):`);
+    const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
+
+    emails.forEach(email => {
+      try {
+        raiz.addViewer(email);
+        console.log(`  ✅ ${email}`);
+      } catch(e) {
+        console.log(`  ⚠️  ${email} — ${e.message}`);
+      }
+    });
+
+    console.log('=== Correção concluída. Teste acessando o Drive com uma conta de professor. ===');
+  } catch(e) {
+    console.log(`❌ Erro: ${e.message}`);
+  }
 }

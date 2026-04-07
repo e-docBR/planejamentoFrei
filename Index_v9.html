@@ -88,7 +88,7 @@ header {
 
 /* Botão modo escuro */
 .btn-tema {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,.35);
   background: rgba(255,255,255,.12);
   color: #fff; font-size: 1.1rem;
@@ -99,7 +99,7 @@ header {
 
 /* Botão imprimir */
 .btn-imprimir-header {
-  height: 36px; padding: 0 14px; border-radius: 8px;
+  height: 44px; padding: 0 14px; border-radius: 8px;
   border: 2px solid rgba(255,255,255,.35);
   background: rgba(255,255,255,.12);
   color: #fff; font-size: .82rem; font-weight: 600;
@@ -116,7 +116,12 @@ nav {
   border-bottom: 2px solid var(--borda);
   transition: background var(--t);
 }
-.nav-inner { max-width: 1180px; margin: 0 auto; display: flex; overflow-x: auto; }
+.nav-inner {
+  max-width: 1180px; margin: 0 auto; display: flex; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+}
+.nav-inner::-webkit-scrollbar { display: none; }
 .nav-btn {
   padding: 13px 22px; border: none;
   background: transparent; cursor: pointer;
@@ -298,7 +303,8 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 .btn-linha:hover { border-color: var(--azul); color: var(--azul); background: var(--azul-l); }
 .btn-remover-linha {
   background: none; border: none; color: var(--texto-s);
-  cursor: pointer; font-size: .88rem; padding: 3px; border-radius: 4px; transition: var(--t);
+  cursor: pointer; font-size: .88rem; padding: 10px; border-radius: 4px; transition: var(--t);
+  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
 }
 .btn-remover-linha:hover { color: var(--vermelho); background: #fee2e2; }
 
@@ -306,7 +312,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
    TABELA SEMANAL
 ═══════════════════════════════════════════════════════ */
 .tabela-semanal-wrap { overflow-x: auto; margin-top: 8px; }
-.tabela-semanal { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--borda); min-width: 720px; }
+.tabela-semanal { border-radius: 8px; overflow: hidden; border: 1.5px solid var(--borda); min-width: 600px; }
 .tabela-semanal table { width: 100%; border-collapse: collapse; }
 .tabela-semanal th {
   background: var(--azul); color: #fff;
@@ -480,9 +486,9 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 .modal-header button {
   background: rgba(255,255,255,.18); border: none;
   color: #fff; font-size: 1.2rem; cursor: pointer;
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  transition: var(--t);
+  transition: var(--t); flex-shrink: 0;
 }
 .modal-header button:hover { background: rgba(255,255,255,.35); }
 .modal-body { overflow-y: auto; overflow-x: auto; padding: 24px; flex: 1; }
@@ -531,7 +537,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
   width: 46px; height: 46px;
   border: 4px solid var(--borda); border-top-color: var(--azul);
   border-radius: 50%; animation: spin .8s linear infinite;
-  margin: 0 auto 14px;
+  margin: 0 auto 14px; will-change: transform;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner-box p { color: var(--azul); font-weight: 600; }
@@ -552,15 +558,77 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 /* ═══════════════════════════════════════════════════════
    RESPONSIVO
 ═══════════════════════════════════════════════════════ */
+
+/* 768px — tablets */
+@media (max-width: 768px) {
+  .graficos-grid { grid-template-columns: 1fr; }
+  .painel-grid { grid-template-columns: 1fr 1fr; }
+  input, select, textarea { font-size: 16px; } /* previne zoom automático no iOS */
+}
+
+/* 680px — celulares maiores e tablets pequenos */
 @media (max-width: 680px) {
-  .header-inner { flex-wrap: wrap; gap: 10px; }
+  .header-inner { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
   .nav-btn { padding: 10px 14px; font-size: .84rem; }
   .form-card { padding: 20px 14px; }
   .campo-grid-2, .campo-grid-3 { grid-template-columns: 1fr; }
   .acoes-form { flex-direction: column; }
-  .btn { justify-content: center; }
+  .btn { justify-content: center; width: 100%; }
   .datas-row { grid-template-columns: 1fr 1fr; }
   .painel-grid { grid-template-columns: 1fr 1fr; }
+  .historico-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .historico-item-acoes { flex-wrap: wrap; width: 100%; }
+  .historico-item-acoes .btn-editar,
+  .historico-item-acoes .btn-aprovar { flex: 1; justify-content: center; }
+  .filtros-painel { flex-direction: column; }
+  .filtros-painel select, .filtros-painel input { width: 100%; }
+  .atrib-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* 480px — celulares pequenos */
+@media (max-width: 480px) {
+  .header-inner { padding: 8px 12px; }
+  .escola-nome h1 { font-size: .85rem; }
+  .badge-ano { display: none; }
+  .btn-imprimir-header .btn-imprimir-label { display: none; }
+  .painel-grid { grid-template-columns: 1fr; }
+  .datas-row { grid-template-columns: 1fr; }
+  .anual-meses { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .menu-cards { grid-template-columns: 1fr; }
+  #toast { left: 12px; right: 12px; bottom: 16px; max-width: none; }
+  .fila-badge { left: 12px; right: 12px; bottom: 12px; justify-content: center; }
+  .cfg-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .cal-dia { min-height: 44px; padding: 3px 4px; }
+  .cal-mes-label { min-width: unset; font-size: .88rem; }
+  .atrib-grid { grid-template-columns: 1fr; }
+  .modal-aprov-footer { flex-direction: column; }
+  .modal-aprov-footer .btn { width: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAIS MOBILE — sheet deslizante pelo rodapé
+═══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  #modal-previa { padding: 0; align-items: flex-end; }
+  .modal-box {
+    border-radius: 20px 20px 0 0; max-width: 100%; width: 100%;
+    max-height: 92dvh; max-height: 92vh; /* fallback para browsers sem dvh */
+  }
+  #modal-aprovacao { padding: 0; align-items: flex-end; }
+  .modal-aprov-box { border-radius: 20px 20px 0 0; max-width: 100%; width: 100%; }
+  .modal-footer { flex-direction: column; }
+  .modal-footer .btn { width: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   SAFE AREA — iOS notch / home indicator
+═══════════════════════════════════════════════════════ */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .acoes-form { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  #toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
+  .fila-badge { bottom: calc(80px + env(safe-area-inset-bottom)); }
+  nav { padding-bottom: env(safe-area-inset-bottom); }
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -597,13 +665,13 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 }
 .anual-mes-card textarea:focus { border-color: var(--azul-m); }
 
-@media (max-width: 640px) { .anual-meses { grid-template-columns: 1fr; } }
+/* .anual-meses colapso em 480px tratado na seção responsivo */
 
 /* ═══════════════════════════════════════════════════════
    [F4-1] MODO OFFLINE
 ═══════════════════════════════════════════════════════ */
 #banner-offline {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  position: relative; z-index: 201;
   background: #d97706; color: #fff;
   padding: 8px 20px; font-size: .88rem; font-weight: 600;
   display: none; align-items: center; justify-content: center; gap: 12px;
@@ -724,8 +792,9 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 .modal-aprov-header h3 { color: #fff; font-size: 1rem; font-weight: 700; }
 .modal-aprov-header button {
   background: rgba(255,255,255,.18); border: none; color: #fff;
-  font-size: 1.1rem; cursor: pointer; width: 28px; height: 28px;
+  font-size: 1.1rem; cursor: pointer; width: 44px; height: 44px;
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 .modal-aprov-body { padding: 24px; }
 .modal-aprov-info {
@@ -804,7 +873,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 }
 .historico-item .btn-aprovar:hover { background: var(--verde); color: #fff; }
 
-@media (max-width: 640px) { .graficos-grid { grid-template-columns: 1fr; } }
+/* .graficos-grid colapso em 768px tratado na seção responsivo */
 #banner-perfil {
   background: var(--azul-l); border-bottom: 1px solid var(--borda);
   padding: 6px 24px; font-size: .82rem; color: var(--texto-s);
@@ -831,7 +900,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 .cal-nav { display: flex; align-items: center; gap: 12px; }
 .cal-nav-btn {
   background: var(--azul-l); border: 1px solid var(--borda);
-  color: var(--azul); width: 32px; height: 32px;
+  color: var(--azul); width: 44px; height: 44px;
   border-radius: 6px; cursor: pointer; font-size: 1rem;
   display: flex; align-items: center; justify-content: center;
   transition: var(--t);
@@ -927,7 +996,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <p>Secretaria Municipal de Educação — Mucuri / BA</p>
     </div>
     <div class="header-actions">
-      <button class="btn-imprimir-header" onclick="imprimirAtual()" title="Imprimir formulário atual">🖨️ Imprimir</button>
+      <button class="btn-imprimir-header" onclick="imprimirAtual()" title="Imprimir formulário atual">🖨️ <span class="btn-imprimir-label">Imprimir</span></button>
       <button class="btn-tema" id="btn-tema" onclick="alternarTema()" title="Alternar modo escuro">🌙</button>
       <span class="badge-ano" id="badge-ano">2026</span>
     </div>
@@ -1309,7 +1378,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
         <option value="Semanal">Semanal</option>
         <option value="Anual">Anual</option>
       </select>
-      <input type="text" id="hist-busca" placeholder="Buscar por componente..." oninput="carregarHistorico()" style="min-width:180px">
+      <input type="text" id="hist-busca" placeholder="Buscar por componente..." oninput="carregarHistorico()">
     </div>
 
     <div id="historico-lista">
@@ -1375,7 +1444,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <select id="coord-componente" onchange="carregarPainel()">
         <option value="">Todos os componentes</option>
       </select>
-      <input type="text" id="coord-busca" placeholder="Buscar professor..." oninput="carregarPainel()" style="min-width:180px">
+      <input type="text" id="coord-busca" placeholder="Buscar professor..." oninput="carregarPainel()">
       <button class="btn btn-outline" onclick="gerarRelatorioPendencias()" style="padding:7px 14px; font-size:.85rem">
         📋 Gerar Relatório de Pendências
       </button>
@@ -1417,7 +1486,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
     <div class="form-titulo">📈 Minhas Estatísticas</div>
     <div class="form-subtitulo">
       <span>Resumo do seu engajamento no sistema de planejamento.</span>
-      <div class="campo" style="min-width:220px">
+      <div class="campo">
         <select id="stats-professor" onchange="carregarEstatisticas()">
           <option value="">— selecione —</option>
         </select>
@@ -2228,7 +2297,6 @@ function _selecionarHabilidade(codigo, descricao, linhaId) {
   hab.focus();
   agendarAutoSave('trimestral');
 }
-
 // ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
 // NAVEGAÇÃO (atualizada com calendário e perfis)
@@ -2252,6 +2320,10 @@ function mostrarPagina(id) {
     if (nav) nav.classList.toggle('ativo', p === id);
   });
   paginaAtual = id;
+
+  // Scroll do botão ativo para visível na navegação mobile
+  const navBtn = document.getElementById('nav-' + id);
+  if (navBtn) navBtn.scrollIntoView({ inline: 'nearest', behavior: 'smooth', block: 'nearest' });
 
   const comProgress = ['trimestral','semanal','anual'];
   document.getElementById('barra-progresso-wrap').classList.toggle('visivel', comProgress.includes(id));
