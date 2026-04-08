@@ -3428,11 +3428,24 @@ function _renderizarPainel(dados, trimestre, componente, busca) {
     return;
   }
 
-  tbody.innerHTML = registros.map((r, idx) => {
-    const sc = r.status === 'Entregue' ? 'status-ok' : r.status === 'Atrasado' ? 'status-atrasado' : 'status-pend';
-    const periodo = r.trimestre || r.semanaInicio || '—';
-    const aprovBtn = '<button class="btn-aprovar" data-tipo="' + (esc(r.tipo)) + '" data-professor="' + (esc(r.professor)) + '" data-componente="' + (esc(r.componente)) + '" data-periodo="' + (esc(periodo)) + '" data-url="' + (esc(r.url||'')) + '">✍️ Avaliar</button>';
-    return '<tr>' + "\n" + '      <td>' + (r.professor||'—') + '</td>' + "\n" + '      <td>' + (r.componente||'—') + '</td>' + "\n" + '      <td>' + (r.tipo||'—') + '</td>' + "\n" + '      <td>' + (periodo) + '</td>' + "\n" + '      <td>' + (r.data||'—') + '</td>' + "\n" + '      <td><span class="status-badge ' + (sc) + '">' + (r.status||'—') + '</span></td>' + "\n" + '      <td>' + (aprovBtn) + '</td>' + "\n" + '      <td>' + (r.url ? '<a href="' + (r.url) + '" target="_blank">📄 Ver</a>' : '—') + '</td>' + "\n" + '    </tr>';
+  tbody.innerHTML = registros.map(r => {
+    const sc = r.status === 'Aprovado' ? 'status-ok'
+             : r.status === 'Entregue' ? 'status-pend'
+             : r.status === 'Atrasado' ? 'status-atrasado'
+             : 'status-pend';
+    const periodo = esc(r.trimestre || r.semanaInicio || '—');
+    const aprovBtn = '<button class="btn-aprovar" data-tipo="' + esc(r.tipo) + '" data-professor="' + esc(r.professor||'') + '" data-componente="' + esc(r.componente||'') + '" data-periodo="' + esc(r.trimestre||r.semanaInicio||'') + '" data-url="' + esc(r.url||'') + '">✍️ Avaliar</button>';
+    const linkPDF = r.url ? '<a href="' + esc(r.url) + '" target="_blank" rel="noopener noreferrer">📄 Ver</a>' : '—';
+    return '<tr>'
+      + '<td>' + esc(r.professor||'—') + '</td>'
+      + '<td>' + esc(r.componente||'—') + '</td>'
+      + '<td>' + esc(r.tipo||'—') + '</td>'
+      + '<td>' + periodo + '</td>'
+      + '<td>' + esc(r.data||'—') + '</td>'
+      + '<td><span class="status-badge ' + sc + '">' + esc(r.status||'—') + '</span></td>'
+      + '<td>' + aprovBtn + '</td>'
+      + '<td>' + linkPDF + '</td>'
+      + '</tr>';
   }).join('');
   
   // Event delegation para botões de aprovar [B1]

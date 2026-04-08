@@ -77,7 +77,8 @@ const CONFIG = {
   
   // [V7-1] E-mails com acesso de coordenação (pode ter mais de um)
   EMAILS_COORDENACAO: [
-    "josival.lima@edu.mucuri.ba.gov.br",
+    "josival.lima@edu.mucuri.ba.gov.br", 
+    "rosangela.borges@edu.mucuri.ba.gov.br",
     // "josival.lima@edu.mucuri.ba.gov.br",  // adicione quantos precisar
   ],
   FUSO:               "America/Bahia",
@@ -745,7 +746,7 @@ function getHistoricoProfessor(professor, page, pageSize) {
 function getDadosPainel() {
   // Cache de 5 minutos via CacheService para evitar timeout na planilha
   const cache = CacheService.getScriptCache();
-  const KEY   = 'painel_dados_v3';
+  const KEY   = 'painel_dados_v4'; // [V10-D3] bump: inclui status enriquecido e totalAprovados
   const hit   = cache.get(KEY);
   if (hit) {
     try { return JSON.parse(hit); } catch(e) { /* cache inválido, recalcula */ }
@@ -870,8 +871,9 @@ function getDadosPainel() {
 function _invalidarCachePainel() {
   try {
     const cache = CacheService.getScriptCache();
-    cache.remove('painel_dados_v3');
+    cache.remove('painel_dados_v4');
     cache.remove(_CACHE_KEY_CADASTROS);
+    cache.remove('getDadosGraficos_v10'); // [PERF] invalida gráficos ao salvar planejamento
   } catch(e) {}
 }
 
@@ -1445,9 +1447,11 @@ function log(nivel, funcao, mensagem, usuario) {
     const cores = { 'ERRO': '#c0392b', 'AVISO': '#d97706', 'INFO': '#2d7a4f' };
     const linha = aba.getLastRow() + 1;
     aba.appendRow([ts('dd/MM/yyyy HH:mm:ss'), nivel, funcao, mensagem, usuario || '']);
+    // [PERF] Aplica cor de fundo e negrito/cor da coluna Nível num único getRange por nível
     if (cores[nivel]) {
-      aba.getRange(linha, 1, 1, 5).setBackground(nivel === 'ERRO' ? '#fee2e2' : nivel === 'AVISO' ? '#fef9c3' : '#f0fdf4');
-      aba.getRange(linha, 2).setFontWeight('bold').setFontColor(cores[nivel]);
+      const bg = nivel === 'ERRO' ? '#fee2e2' : nivel === 'AVISO' ? '#fef9c3' : '#f0fdf4';
+      aba.getRange(linha, 1, 1, 5).setBackground(bg);
+      aba.getRange(linha, 2, 1, 1).setFontWeight('bold').setFontColor(cores[nivel]);
     }
     Logger.log(`[${nivel}] ${funcao}: ${mensagem}`);
   } catch(e) {
@@ -1462,13 +1466,18 @@ function log(nivel, funcao, mensagem, usuario) {
 // ═══════════════════════════════════════════════════════════
 function logErroJS(payload) {
   // Sem _verificarPermissao — pode ocorrer antes da autenticação
-  const email = Session.getActiveUser().getEmail() || 'anônimo';
-  const partes = [payload.msg || ''];
-  if (payload.arquivo) partes.push(payload.arquivo + ':' + (payload.linha || '?'));
-  if (payload.stack)   partes.push('Stack: ' + payload.stack);
-  if (payload.tipo)    partes.push('Tipo: ' + payload.tipo);
-  const msg = '[JS] ' + partes.join(' | ');
-  log('ERRO', 'frontend', msg, email);
+  try {
+    if (!payload || typeof payload !== 'object') return;
+    const email = Session.getActiveUser().getEmail() || 'anônimo';
+    const partes = [String(payload.msg || '').substring(0, 300)];
+    if (payload.arquivo) partes.push(String(payload.arquivo).substring(0, 100) + ':' + (payload.linha || '?'));
+    if (payload.stack)   partes.push('Stack: ' + String(payload.stack).substring(0, 400));
+    if (payload.tipo)    partes.push('Tipo: ' + String(payload.tipo));
+    const msg = '[JS] ' + partes.join(' | ');
+    log('ERRO', 'frontend', msg, email);
+  } catch(e) {
+    Logger.log('[logErroJS falhou] ' + e.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1578,7 +1587,13 @@ function _provisionarPastaProfessor(nome, emailProfessor) {
   // Verifica se já existe para não recriar a cada login
   const existentes = pastaProfRef.getFoldersByName(nomeDir);
   if (existentes.hasNext()) {
-    return existentes.next(); // já provisionada
+    // [V9-26-FIX] Garante acesso à pasta raiz mesmo para pastas já provisionadas
+    // (cobre professores criados antes do patch V9-26 ser aplicado)
+    _concederAcessoPastaRaiz([emailProfessor]);
+    const pastaExistente = existentes.next();
+    // [V10-FIX] Re-concede editor na pasta pessoal caso tenha sido revogado manualmente
+    try { pastaExistente.addEditor(emailProfessor); } catch(e2) {}
+    return pastaExistente;
   }
 
   // [V7-2] Cria pasta com compartilhamento restrito
@@ -2440,54 +2455,44 @@ function getDadosGraficos() {
     const ss  = abrirPlanilha();
     const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-    // Entregas por mês (todos os tipos)
-    const porMes = Array(12).fill(0);
+    // [PERF] Lê cada aba UMA vez e reutiliza os dados nas 3 análises
+    const sheetsData = {};
     [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
       const aba = ss.getSheetByName(tipo);
-      if (!aba) return;
+      sheetsData[tipo] = (aba && aba.getLastRow() > 1) ? aba.getDataRange().getValues() : [];
+    });
+
+    // Entregas por mês (todos os tipos)
+    const porMes = Array(12).fill(0);
+    // Entregas por tipo
+    const porTipo = { Trimestral: 0, Semanal: 0, Anual: 0 };
+    // Professores com entrega e contagem (top 5)
+    const comEntrega = new Set();
+    const contProf   = {};
+
+    [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
+      const rows = sheetsData[tipo];
       const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
-      aba.getDataRange().getValues().slice(1).forEach(row => {
-        if (!row[C.DATA]) return;
-        const dataStr = row[C.DATA] instanceof Date
-          ? Utilities.formatDate(row[C.DATA], CONFIG.FUSO, 'dd/MM/yyyy')
-          : String(row[C.DATA]);
-        const m = parseInt(dataStr.substring(3,5), 10);
-        if (m >= 1 && m <= 12) porMes[m-1]++;
+      porTipo[tipo] = Math.max(0, rows.length - 1);
+      rows.slice(1).forEach(row => {
+        if (row[C.DATA]) {
+          const dataStr = row[C.DATA] instanceof Date
+            ? Utilities.formatDate(row[C.DATA], CONFIG.FUSO, 'dd/MM/yyyy')
+            : String(row[C.DATA]);
+          const m = parseInt(dataStr.substring(3,5), 10);
+          if (m >= 1 && m <= 12) porMes[m-1]++;
+        }
+        if (row[C.PROFESSOR]) {
+          comEntrega.add(row[C.PROFESSOR]);
+          contProf[row[C.PROFESSOR]] = (contProf[row[C.PROFESSOR]] || 0) + 1;
+        }
       });
     });
 
-    // Entregas por tipo
-    const porTipo = { Trimestral: 0, Semanal: 0, Anual: 0 };
-    [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
-      const aba = ss.getSheetByName(tipo);
-      if (!aba) return;
-      porTipo[tipo] = Math.max(0, aba.getLastRow() - 1);
-    });
-
-    // Professores com/sem entrega
-    const cadastros  = getCadastros();
-    const comEntrega = new Set();
-    [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
-      const aba = ss.getSheetByName(tipo);
-      if (!aba) return;
-      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
-      aba.getDataRange().getValues().slice(1).forEach(row => { if (row[C.PROFESSOR]) comEntrega.add(row[C.PROFESSOR]); });
-    });
+    const cadastros = getCadastros();
     const totalProf = cadastros.professores.length;
     const comPlano  = comEntrega.size;
     const semPlano  = Math.max(0, totalProf - comPlano);
-
-    // Top 5 professores (mais entregas)
-    const contProf = {};
-    [ABA.TRIMESTRAL, ABA.SEMANAL, ABA.ANUAL].forEach(tipo => {
-      const aba = ss.getSheetByName(tipo);
-      if (!aba) return;
-      const C = SHEET_COLS[tipo === ABA.TRIMESTRAL ? 'TRIMESTRAL' : tipo === ABA.SEMANAL ? 'SEMANAL' : 'ANUAL'];
-      aba.getDataRange().getValues().slice(1).forEach(row => {
-        if (!row[C.PROFESSOR]) return;
-        contProf[row[C.PROFESSOR]] = (contProf[row[C.PROFESSOR]] || 0) + 1;
-      });
-    });
     const top5 = Object.entries(contProf)
       .sort((a,b) => b[1]-a[1]).slice(0,5)
       .map(([nome, total]) => ({ nome: nome.split(' ')[0], total }));
@@ -2578,27 +2583,23 @@ function salvarConfiguracoes(payload) {
     let aba   = ss.getSheetByName(ABA.CONFIGURACOES);
     if (!aba) aba = _criarAbaConfiguracoes(ss);
 
-    // [V9-1] BUG CORRIGIDO: re-lê a planilha a cada iteração para garantir
-    // índices corretos após escritas anteriores no mesmo lote.
-    // O bug original usava um único `vals` estático; se duas chaves
-    // distintas fossem salvas no mesmo payload, a segunda poderia gravar
-    // na linha errada porque `i + 2` estava deslocado pelo header não skipado.
+    // [PERF] Lê a planilha UMA vez e constrói mapa chave→linha.
+    // A releitura por iteração era necessária no bug original (índice deslocado),
+    // mas com o mapa correto (i + 2 = skip header + 1-based) não há deslocamento:
+    // setValue() não adiciona/remove linhas; appendRow() só acrescenta no final.
+    const valsInicial = aba.getDataRange().getValues();
+    const keyMap = {};
+    valsInicial.slice(1).forEach((row, i) => {
+      const k = String(row[0] || '').trim();
+      if (k) keyMap[k] = i + 2; // +1 do slice(1) + +1 do 1-based do Sheets
+    });
+
     Object.entries(payload).forEach(([chave, valor]) => {
-      // Re-lê para ter o índice atualizado a cada iteração
-      const valsAtual = aba.getDataRange().getValues();
-      let linhaEncontrada = -1;
-
-      // slice(1) para pular o cabeçalho; o índice real na planilha = i + 2
-      valsAtual.slice(1).forEach((row, i) => {
-        if (String(row[0]).trim() === chave) {
-          linhaEncontrada = i + 2; // +1 do slice(1) + +1 do 1-based do Sheets
-        }
-      });
-
-      if (linhaEncontrada > 0) {
-        aba.getRange(linhaEncontrada, 2).setValue(valor);
+      if (keyMap[chave]) {
+        aba.getRange(keyMap[chave], 2).setValue(valor);
       } else {
         aba.appendRow([chave, valor]);
+        // não atualiza keyMap pois chaves subsequentes novas vão ao final mesmo
       }
 
       // [V9-4] Invalida cache individual desta chave para que PDFs gerados
@@ -2699,12 +2700,14 @@ function _salvarAtribuicoes(ss, atribuicoes) {
   const ultimaLinha = aba.getLastRow();
   if (ultimaLinha > 1) aba.deleteRows(2, ultimaLinha - 1);
 
+  // [PERF] setValues em lote em vez de appendRow por linha
   // atribuicoes: [{ professor, componente, turma }, ...]
-  atribuicoes.forEach(a => {
-    if (a.professor && a.componente && a.turma) {
-      aba.appendRow([a.professor, a.componente, a.turma]);
-    }
-  });
+  const linhas = atribuicoes
+    .filter(a => a.professor && a.componente && a.turma)
+    .map(a => [a.professor, a.componente, a.turma]);
+  if (linhas.length > 0) {
+    aba.getRange(2, 1, linhas.length, 3).setValues(linhas);
+  }
 }
 
 function _criarAbaConfiguracoes(ss) {
@@ -2743,27 +2746,35 @@ function _cfg(chave, fallback) {
   try {
     // Validação de entrada
     if (!chave || typeof chave !== 'string') return String(fallback || '');
-    
+
     const cache = CacheService.getScriptCache();
     const cKey  = 'cfg_' + chave;
     const hit   = cache.get(cKey);
     if (hit !== null) return hit;
 
+    // [PERF] Cache miss: lê TODAS as chaves de uma vez e usa putAll() —
+    // evita uma leitura da planilha por chave solicitada.
     const ss  = abrirPlanilha();
     const aba = ss.getSheetByName(ABA.CONFIGURACOES);
     if (!aba || aba.getLastRow() < 2) return String(fallback || '');
 
     const vals = aba.getDataRange().getValues();
+    const allCfg = {};
     for (const row of vals.slice(1)) {
       if (!row || row.length < 2) continue;
-      if (String(row[0] || '').trim() === chave) {
-        const val = String(row[1] ?? '').trim();
-        // Cache por 5 minutos
-        try { cache.put(cKey, val, 300); } catch(eCa) { /* ignora erro de cache */ }
-        return val || String(fallback || '');
-      }
+      const k = String(row[0] || '').trim();
+      const v = String(row[1] ?? '').trim();
+      if (k) allCfg[k] = v;
     }
-    return String(fallback || '');
+
+    // Armazena todas as chaves de uma vez (uma chamada de rede vs N)
+    try {
+      const entries = {};
+      Object.entries(allCfg).forEach(([k, v]) => { entries['cfg_' + k] = v; });
+      cache.putAll(entries, 300);
+    } catch(eCa) { /* ignora erro de cache */ }
+
+    return allCfg[chave] || String(fallback || '');
   } catch(e) {
     log('AVISO', '_cfg', `Erro ao buscar configuração '${chave}': ${e.message}`);
     return String(fallback || '');
@@ -2804,16 +2815,29 @@ function _buscarBNCC_API(query) {
   return [];
 }
 
+// [PERF] Chave de cache para dados brutos da aba BNCC (validade: 1 hora)
+const _CACHE_KEY_BNCC = 'bncc_rows_v1';
+
 function _buscarBNCC_local(query) {
   try {
-    const ss   = abrirPlanilha();
-    let aba    = ss.getSheetByName(ABA.BNCC);
-    if (!aba) aba = _criarAbaBNCC(ss);
-
     const q    = query.toLowerCase();
-    const vals = aba.getDataRange().getValues();
+    const cache = CacheService.getScriptCache();
 
-    return vals.slice(1)
+    // Tenta obter as linhas da aba do cache (evita leitura repetida da planilha)
+    let rows;
+    const hit = cache.get(_CACHE_KEY_BNCC);
+    if (hit) {
+      try { rows = JSON.parse(hit); } catch(e) { /* cache corrompido, relê */ }
+    }
+    if (!rows) {
+      const ss = abrirPlanilha();
+      let aba  = ss.getSheetByName(ABA.BNCC);
+      if (!aba) aba = _criarAbaBNCC(ss);
+      rows = aba.getDataRange().getValues().slice(1);
+      try { cache.put(_CACHE_KEY_BNCC, JSON.stringify(rows), 3600); } catch(eCa) { /* quota */ }
+    }
+
+    return rows
       .filter(row => {
         const cod  = String(row[0]).toLowerCase();
         const comp = String(row[1]).toLowerCase();
@@ -2848,11 +2872,16 @@ function _salvarHabilidadesLocal(habilidades) {
       aba.getDataRange().getValues().slice(1).map(r => String(r[0]).trim())
     );
 
-    habilidades.forEach(h => {
-      if (!h.codigo || existentes.has(h.codigo)) return;
-      aba.appendRow([h.codigo, h.componente, h.segmento, h.descricao]);
-      existentes.add(h.codigo);
-    });
+    const novas = habilidades.filter(h => h.codigo && !existentes.has(h.codigo));
+    if (novas.length === 0) return;
+
+    // [PERF] setValues em lote em vez de appendRow por habilidade
+    const inicio = aba.getLastRow() + 1;
+    const linhas = novas.map(h => [h.codigo, h.componente, h.segmento, h.descricao]);
+    aba.getRange(inicio, 1, linhas.length, 4).setValues(linhas);
+
+    // Invalida cache da aba BNCC pois há novos dados
+    try { CacheService.getScriptCache().remove(_CACHE_KEY_BNCC); } catch(e2) { /* não crítico */ }
   } catch(e) { /* não crítico — operação em background */ }
 }
 
