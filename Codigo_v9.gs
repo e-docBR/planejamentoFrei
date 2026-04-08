@@ -1516,18 +1516,32 @@ function getExecUrl() {
   return ScriptApp.getService().getUrl();
 }
 
+// [PERF-PERFIL] Cache key por usuário — CacheService.getUserCache() já é escoped por usuário
+const _CACHE_KEY_PERFIL = 'perfil_v2';
+
 function getPerfil() {
   try {
     const email = Session.getActiveUser().getEmail();
     if (!email || !email.includes('@')) {
       return { nome: 'Visitante', email: '', perfil: 'desconhecido' };
     }
-    
+
     const emailNormalizado = email.toLowerCase().trim();
 
-    // [V7-5] Coordenação — acesso total, sem pasta individual
+    // [PERF-PERFIL] Coordenação não usa cache — resposta instantânea, sem I/O
     if (_ehCoordenacao(emailNormalizado)) {
       return { nome: 'Coordenação', email: emailNormalizado, perfil: 'coordenacao', pastaId: null };
+    }
+
+    // [PERF-PERFIL] Tenta retornar do cache de usuário (10 min) antes de acessar Drive/Sheets
+    const userCache = CacheService.getUserCache();
+    const cacheHit  = userCache.get(_CACHE_KEY_PERFIL);
+    if (cacheHit) {
+      try {
+        const cached = JSON.parse(cacheHit);
+        // Valida que o cache corresponde ao email atual (segurança)
+        if (cached && cached.email === emailNormalizado) return cached;
+      } catch(e) { /* cache inválido, recalcula */ }
     }
 
     // Verifica na aba de cadastros
@@ -1550,7 +1564,7 @@ function getPerfil() {
       const atribuicoes = _getAtribuicoesProfessor(nomeProfessor);
 
       log('INFO', 'getPerfil', `Login: ${nomeProfessor} (${emailNormalizado})${pasta ? ' — pasta: ' + pasta.getId() : ''}`);
-      return {
+      const resultado = {
         nome:        nomeProfessor,
         email:       emailNormalizado,
         perfil:      'professor',
@@ -1559,6 +1573,10 @@ function getPerfil() {
         turmas:      atribuicoes.turmas,      // [V8-1] pré-seleção automática
         componentes: atribuicoes.componentes, // [V8-1] componentes deste professor
       };
+
+      // [PERF-PERFIL] Armazena no cache por 10 min — evita Drive calls repetidos por login
+      try { userCache.put(_CACHE_KEY_PERFIL, JSON.stringify(resultado), 600); } catch(e) { /* não crítico */ }
+      return resultado;
     }
 
     // E-mail Google reconhecido mas não cadastrado
@@ -1569,6 +1587,11 @@ function getPerfil() {
     log('AVISO', 'getPerfil', e.message);
     return { nome: 'Modo Dev', email: '', perfil: 'dev', pastaId: null };
   }
+}
+
+// [PERF-INIT] Retorna cadastros + perfil em uma única chamada GAS — economiza 1 round trip no carregamento
+function getInitData() {
+  return { cadastros: getCadastros(), perfil: getPerfil() };
 }
 
 /**
@@ -1587,9 +1610,6 @@ function _provisionarPastaProfessor(nome, emailProfessor) {
   // Verifica se já existe para não recriar a cada login
   const existentes = pastaProfRef.getFoldersByName(nomeDir);
   if (existentes.hasNext()) {
-    // [V9-26-FIX] Garante acesso à pasta raiz mesmo para pastas já provisionadas
-    // (cobre professores criados antes do patch V9-26 ser aplicado)
-    _concederAcessoPastaRaiz([emailProfessor]);
     const pastaExistente = existentes.next();
     // [V10-FIX] Re-concede editor na pasta pessoal caso tenha sido revogado manualmente
     try { pastaExistente.addEditor(emailProfessor); } catch(e2) {}
@@ -1611,9 +1631,6 @@ function _provisionarPastaProfessor(nome, emailProfessor) {
   } catch(e) {
     log('AVISO', '_provisionarPastaProfessor', `Falha ao conceder acesso a ${emailProfessor}: ${e.message}`);
   }
-
-  // [V9-26] Concede acesso de Visualizador à pasta raiz para o professor poder navegar
-  _concederAcessoPastaRaiz([emailProfessor]);
 
   // [V9-14] Concede acesso a coordenação como Viewer (não Editor) para evitar alteração acidental de PDFs
   CONFIG.EMAILS_COORDENACAO.forEach(emailCoord => {
@@ -1709,21 +1726,34 @@ function _enviarBoasVindasProfessor(nome, emailProfessor, urlPasta) {
 function _pastaDestino(tipo, nomeProfessor) {
   // Tenta encontrar a pasta individual do professor
   try {
-    const raiz    = DriveApp.getFolderById(CONFIG.PASTA_ID);
-    const profDir = subpasta(raiz.getId(), 'Professores');
-
     const nomeDir = (nomeProfessor || '').normalize('NFD')
       .replace(/[\u0300-\u036f]/g,'')
       .replace(/[^a-zA-Z0-9\s]/g,'').trim().replace(/\s+/g,'_');
 
     if (!nomeDir) throw new Error('Nome inválido');
 
+    const nomeSub = { T:'Trimestral', S:'Semanal', A:'Anual', Docs:'Docs' }[tipo] || tipo;
+
+    // [PERF-PASTA] Cache do ID da subpasta por (professor + tipo) — evita 3 Drive calls por salvar
+    const cache    = CacheService.getScriptCache();
+    const cacheKey = `pasta_prof_${nomeDir}_${nomeSub}`;
+    const cachedId = cache.get(cacheKey);
+    if (cachedId) {
+      try { return DriveApp.getFolderById(cachedId); } catch(e) { /* ID inválido, recalcula */ }
+    }
+
+    const raiz    = DriveApp.getFolderById(CONFIG.PASTA_ID);
+    const profDir = subpasta(raiz.getId(), 'Professores');
+
     const profExist = profDir.getFoldersByName(nomeDir);
     if (!profExist.hasNext()) throw new Error('Pasta do professor não existe ainda');
 
     const pastaProfessor = profExist.next();
-    const nomeSub        = { T:'Trimestral', S:'Semanal', A:'Anual', Docs:'Docs' }[tipo] || tipo;
-    return subpasta(pastaProfessor.getId(), nomeSub);
+    const subPasta = subpasta(pastaProfessor.getId(), nomeSub);
+
+    // Salva no cache por 1 hora — ID de pasta é estável
+    try { cache.put(cacheKey, subPasta.getId(), 3600); } catch(e) { /* não crítico */ }
+    return subPasta;
 
   } catch(e) {
     // Fallback: usa subpastas globais (comportamento anterior)
@@ -2647,15 +2677,6 @@ function salvarCadastros(payload) {
     // Atualiza atribuições de turma/componente por professor
     if (payload.atribuicoes) _salvarAtribuicoes(ss, payload.atribuicoes);
 
-    // [V9-26] Concede acesso à pasta raiz para todos os professores com e-mail cadastrado
-    // Isso evita que o professor precise "solicitar acesso" ao Drive antes do 1º login
-    const emailsValidos = Object.values(payload.emails || {})
-      .map(e => String(e || '').trim().toLowerCase())
-      .filter(e => e && e.includes('@'));
-    if (emailsValidos.length > 0) {
-      _concederAcessoPastaRaiz(emailsValidos);
-    }
-
     // Invalida cache do painel
     _invalidarCachePainel();
     log('INFO', 'salvarCadastros', `Cadastros atualizados — ${(payload.professores||[]).length} professores`);
@@ -2667,25 +2688,37 @@ function salvarCadastros(payload) {
 }
 
 /**
- * [V9-26] Concede acesso de Visualizador à pasta raiz do sistema para cada e-mail da lista.
- * É chamado ao salvar cadastros e ao provisionar pasta individual.
- * Idempotente: o Drive ignora silenciosamente se o acesso já existe.
+ * [V11-SEC] Remove o acesso de Visualizador que professores tinham na pasta raiz do sistema.
+ * Execute uma vez no editor de scripts para corrigir permissões já concedidas pelo patch V9-26.
+ * Professores continuam com acesso Editor somente em suas pastas individuais.
  */
-function _concederAcessoPastaRaiz(emails) {
-  try {
-    const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
-    emails.forEach(email => {
-      if (!email || !email.includes('@')) return;
-      try {
-        raiz.addViewer(email);
-        log('INFO', '_concederAcessoPastaRaiz', `Acesso de visualizador concedido na pasta raiz: ${email}`);
-      } catch(e) {
-        log('AVISO', '_concederAcessoPastaRaiz', `Falha ao conceder acesso a ${email}: ${e.message}`);
-      }
-    });
-  } catch(e) {
-    log('AVISO', '_concederAcessoPastaRaiz', `Pasta raiz inacessível: ${e.message}`);
-  }
+function revogarAcessoProfessoresNaRaiz() {
+  const ss    = abrirPlanilha();
+  const aba   = ss.getSheetByName(ABA.CADASTROS);
+  if (!aba) { console.log('Aba de cadastros não encontrada.'); return; }
+
+  const dados = aba.getDataRange().getValues();
+  const raiz  = DriveApp.getFolderById(CONFIG.PASTA_ID);
+
+  let revogados = 0, erros = 0;
+  dados.forEach(row => {
+    const tipo  = String(row[SHEET_COLS.CADASTROS.TIPO]  || '').trim().toUpperCase();
+    const email = String(row[SHEET_COLS.CADASTROS.EMAIL] || '').trim().toLowerCase();
+    if (tipo !== 'PROFESSOR') return;
+    if (!email || !email.includes('@')) return;
+    try {
+      raiz.removeViewer(email);
+      raiz.removeEditor(email);
+      console.log(`✓ Acesso revogado na raiz: ${email}`);
+      revogados++;
+    } catch(e) {
+      console.log(`⚠ Falha ao revogar ${email}: ${e.message}`);
+      erros++;
+    }
+  });
+
+  console.log(`=== Concluído: ${revogados} revogado(s), ${erros} erro(s) ===`);
+  console.log('Professores mantêm acesso Editor somente em suas pastas individuais.');
 }
 
 function _salvarAtribuicoes(ss, atribuicoes) {
@@ -3063,7 +3096,11 @@ function _salvarIdPlanilha(id) {
 }
 
 // [BUG-2][V9-20] Planilha aberta sempre por ID — criação automática no primeiro acesso
+// [PERF-SS] Singleton de planilha — evita SpreadsheetApp.openById() repetido na mesma execução GAS
+let _ssInstance = null;
+
 function abrirPlanilha() {
+  if (_ssInstance) return _ssInstance;
   // NOTA: usa Logger.log (NÃO log()) para evitar recursão infinita
   // log() chama abrirPlanilha() → não usar log() aqui
   function _L(msg) { try { Logger.log('[abrirPlanilha] ' + msg); } catch(e) {} }
@@ -3074,6 +3111,7 @@ function abrirPlanilha() {
       try {
         const ss = SpreadsheetApp.openById(idExistente);
         _L('Planilha aberta por ID: ' + ss.getName());
+        _ssInstance = ss; // [PERF-SS] salva singleton
         return ss;
       } catch(e) {
         _L('ID salvo inválido (' + idExistente + '): ' + e.message);
@@ -3098,6 +3136,7 @@ function abrirPlanilha() {
       _salvarIdPlanilha(id);
       const ss = SpreadsheetApp.openById(id);
       _L('Planilha encontrada: ' + nomeArquivo + ' (' + id + ')');
+      _ssInstance = ss; // [PERF-SS] salva singleton
       return ss;
     }
 
@@ -3123,6 +3162,7 @@ function abrirPlanilha() {
 
     _salvarIdPlanilha(arqId);
     _L('Planilha criada com sucesso. ID: ' + arqId);
+    _ssInstance = ss; // [PERF-SS] salva singleton
     return ss;
   } catch(e) {
     if (e.message && e.message.includes('Não foi possível')) throw e;
@@ -3593,17 +3633,15 @@ function diagnosticoSistema() {
 }
 
 /**
- * [V9-26] CORREÇÃO RETROATIVA DE ACESSOS
- * Execute esta função manualmente no editor do Apps Script (▶ Run)
- * para conceder acesso à pasta raiz a TODOS os professores já cadastrados.
+ * [V11-SEC] CORREÇÃO RETROATIVA DE ACESSOS — remove acesso à pasta raiz de todos os professores.
+ * Execute esta função manualmente no editor do Apps Script (▶ Run) UMA VEZ para corrigir
+ * os acessos concedidos indevidamente pelo patch V9-26.
  *
- * Use quando:
- *  - Professores estão pedindo acesso via Google Drive ("Solicitar acesso")
- *  - Novos professores foram cadastrados antes desta correção existir
- *  - Qualquer professor não consegue acessar a pasta no Drive
+ * Professores continuam com acesso Editor somente em suas pastas individuais.
+ * O sistema web não precisa que o professor tenha acesso à pasta raiz do Drive.
  */
 function corrigirAcessosTodosProfessores() {
-  console.log('=== [V9-26] Iniciando correção de acessos ===');
+  console.log('=== [V11-SEC] Revogando acesso à pasta raiz de todos os professores ===');
   try {
     const cadastros = getCadastros();
     const emails = Object.values(cadastros.emails || {})
@@ -3615,19 +3653,22 @@ function corrigirAcessosTodosProfessores() {
       return;
     }
 
-    console.log(`Concedendo acesso à pasta raiz para ${emails.length} professor(es):`);
     const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
+    let revogados = 0;
 
     emails.forEach(email => {
       try {
-        raiz.addViewer(email);
-        console.log(`  ✅ ${email}`);
+        raiz.removeViewer(email);
+        raiz.removeEditor(email);
+        console.log(`  ✅ Revogado: ${email}`);
+        revogados++;
       } catch(e) {
         console.log(`  ⚠️  ${email} — ${e.message}`);
       }
     });
 
-    console.log('=== Correção concluída. Teste acessando o Drive com uma conta de professor. ===');
+    console.log(`=== Concluído: ${revogados} acesso(s) revogado(s) na pasta raiz. ===`);
+    console.log('Professores ainda têm acesso Editor em suas pastas individuais.');
   } catch(e) {
     console.log(`❌ Erro: ${e.message}`);
   }

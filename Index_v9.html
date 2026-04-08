@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Planejamento Escolar – Colégio Itabatan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- [PERF-FONTS] Carregamento não-bloqueante — previne render delay em mobile/3G -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 /* ═══════════════════════════════════════════════════════
    TOKENS DE DESIGN — TEMA CLARO / ESCURO
@@ -632,6 +636,76 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 }
 
 /* ═══════════════════════════════════════════════════════
+   [MOBILE-SEMANAL] TABELA SEMANAL — NAVEGAÇÃO POR DIA
+   Em telas ≤ 640px exibe uma aba por dia em vez da tabela completa
+═══════════════════════════════════════════════════════ */
+.semanal-day-tabs {
+  display: none; /* visível apenas em mobile via media query abaixo */
+  gap: 4px; flex-wrap: nowrap; overflow-x: auto;
+  margin-bottom: 8px; padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.semanal-day-tabs::-webkit-scrollbar { display: none; }
+.semanal-day-tab {
+  flex: 1; min-width: 56px; padding: 9px 6px;
+  border: 1.5px solid var(--borda); border-radius: 8px;
+  background: var(--card); color: var(--texto-s);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: .8rem; font-weight: 700;
+  cursor: pointer; transition: var(--t); text-align: center;
+  white-space: nowrap;
+}
+.semanal-day-tab.ativo {
+  background: var(--azul); color: #fff; border-color: var(--azul);
+}
+.semanal-day-tab:hover:not(.ativo) { background: var(--azul-l); color: var(--azul); }
+
+@media (max-width: 640px) {
+  .semanal-day-tabs { display: flex; }
+  /* Remove scroll horizontal — um dia por vez */
+  .tabela-semanal-wrap { overflow-x: visible; }
+  .tabela-semanal { min-width: unset; }
+  .tabela-semanal table { table-layout: fixed; }
+  /* Oculta todas as colunas de dia; JS adiciona .semanal-col-ativa na selecionada */
+  .semanal-col-0, .semanal-col-1, .semanal-col-2,
+  .semanal-col-3, .semanal-col-4 { display: none; }
+  .semanal-col-ativa { display: table-cell !important; }
+  /* Alarga o campo do dia visível para ocupar todo o espaço */
+  .tabela-semanal td.semanal-col-ativa,
+  .tabela-semanal th.semanal-col-ativa { width: auto; }
+  .tabela-semanal textarea { min-height: 70px; font-size: 1rem; }
+  /* Exibe label do dia acima da tabela */
+  .tabela-semanal th.semanal-col-ativa { font-size: .9rem; padding: 10px; text-align: center; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   [MOBILE-TURMAS] CHIPS DE TURMAS — SUBSTITUI select[multiple]
+   Em telas ≤ 640px mostra botões toggle em vez do select múltiplo
+═══════════════════════════════════════════════════════ */
+.s-turmas-chips-wrap {
+  display: none; /* mostrado em mobile via media query */
+  flex-wrap: wrap; gap: 7px; padding: 8px;
+  border: 1.5px solid var(--borda); border-radius: 7px;
+  background: var(--card); min-height: 46px;
+  transition: border-color var(--t);
+}
+.s-turmas-chips-wrap:focus-within { border-color: var(--azul-m); }
+.turma-chip-btn {
+  padding: 6px 13px; border-radius: 20px; font-size: .82rem; font-weight: 600;
+  border: 1.5px solid var(--borda); background: var(--card); color: var(--texto-s);
+  cursor: pointer; transition: var(--t); font-family: 'Source Sans 3', sans-serif;
+  min-height: 36px; /* toque confortável */
+}
+.turma-chip-btn.ativo {
+  background: var(--azul); color: #fff; border-color: var(--azul);
+}
+.turma-chip-btn:hover:not(.ativo) { background: var(--azul-l); color: var(--azul); border-color: var(--azul); }
+@media (max-width: 640px) {
+  #s-turmas { display: none !important; }
+  .s-turmas-chips-wrap { display: flex; }
+}
+
+/* ═══════════════════════════════════════════════════════
    IMPRESSÃO
 ═══════════════════════════════════════════════════════ */
 @media print {
@@ -1198,7 +1272,9 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       </div>
       <div class="campo">
         <label>Turmas *</label>
-        <select id="s-turmas" multiple style="min-height:68px"><option value="">— selecione —</option></select>
+        <select id="s-turmas" multiple style="min-height:68px"></select>
+        <!-- [MOBILE-TURMAS] Chips de turma — visíveis apenas em telas ≤ 640px (substitui select[multiple]) -->
+        <div id="s-turmas-chips" class="s-turmas-chips-wrap" aria-label="Selecione as turmas"></div>
       </div>
     </div>
     <div class="campo-grid-3" style="margin-top:12px">
@@ -1235,41 +1311,52 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
     </div>
 
     <div class="section-label">📖 Planejamento por dia</div>
+    <!-- [MOBILE-SEMANAL] Seletor de dia — visível apenas em telas ≤ 640px -->
+    <div class="semanal-day-tabs" id="semanal-day-tabs">
+      <button class="semanal-day-tab ativo" data-dia="0" onclick="selecionarDiaSemanal(0)">SEG</button>
+      <button class="semanal-day-tab"       data-dia="1" onclick="selecionarDiaSemanal(1)">TER</button>
+      <button class="semanal-day-tab"       data-dia="2" onclick="selecionarDiaSemanal(2)">QUA</button>
+      <button class="semanal-day-tab"       data-dia="3" onclick="selecionarDiaSemanal(3)">QUI</button>
+      <button class="semanal-day-tab"       data-dia="4" onclick="selecionarDiaSemanal(4)">SEX</button>
+    </div>
     <div class="tabela-semanal-wrap">
       <div class="tabela-semanal">
         <table>
           <thead>
             <tr>
               <th class="th-campo"></th>
-              <th>Segunda-feira</th><th>Terça-feira</th>
-              <th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th>
+              <th class="semanal-col-0">Segunda-feira</th>
+              <th class="semanal-col-1">Terça-feira</th>
+              <th class="semanal-col-2">Quarta-feira</th>
+              <th class="semanal-col-3">Quinta-feira</th>
+              <th class="semanal-col-4">Sexta-feira</th>
             </tr>
           </thead>
           <tbody>
             <tr><td class="campo-label">HABILIDADE</td>
-              <td><textarea id="s-r0c0" placeholder="Habilidade..."></textarea></td>
-              <td><textarea id="s-r0c1" placeholder="Habilidade..."></textarea></td>
-              <td><textarea id="s-r0c2" placeholder="Habilidade..."></textarea></td>
-              <td><textarea id="s-r0c3" placeholder="Habilidade..."></textarea></td>
-              <td><textarea id="s-r0c4" placeholder="Habilidade..."></textarea></td></tr>
+              <td class="semanal-col-0"><textarea id="s-r0c0" placeholder="Habilidade..."></textarea></td>
+              <td class="semanal-col-1"><textarea id="s-r0c1" placeholder="Habilidade..."></textarea></td>
+              <td class="semanal-col-2"><textarea id="s-r0c2" placeholder="Habilidade..."></textarea></td>
+              <td class="semanal-col-3"><textarea id="s-r0c3" placeholder="Habilidade..."></textarea></td>
+              <td class="semanal-col-4"><textarea id="s-r0c4" placeholder="Habilidade..."></textarea></td></tr>
             <tr><td class="campo-label">ESTRATÉGIA</td>
-              <td><textarea id="s-r1c0" placeholder="Estratégia..."></textarea></td>
-              <td><textarea id="s-r1c1" placeholder="Estratégia..."></textarea></td>
-              <td><textarea id="s-r1c2" placeholder="Estratégia..."></textarea></td>
-              <td><textarea id="s-r1c3" placeholder="Estratégia..."></textarea></td>
-              <td><textarea id="s-r1c4" placeholder="Estratégia..."></textarea></td></tr>
+              <td class="semanal-col-0"><textarea id="s-r1c0" placeholder="Estratégia..."></textarea></td>
+              <td class="semanal-col-1"><textarea id="s-r1c1" placeholder="Estratégia..."></textarea></td>
+              <td class="semanal-col-2"><textarea id="s-r1c2" placeholder="Estratégia..."></textarea></td>
+              <td class="semanal-col-3"><textarea id="s-r1c3" placeholder="Estratégia..."></textarea></td>
+              <td class="semanal-col-4"><textarea id="s-r1c4" placeholder="Estratégia..."></textarea></td></tr>
             <tr><td class="campo-label">RECURSOS</td>
-              <td><textarea id="s-r2c0" placeholder="Recursos..."></textarea></td>
-              <td><textarea id="s-r2c1" placeholder="Recursos..."></textarea></td>
-              <td><textarea id="s-r2c2" placeholder="Recursos..."></textarea></td>
-              <td><textarea id="s-r2c3" placeholder="Recursos..."></textarea></td>
-              <td><textarea id="s-r2c4" placeholder="Recursos..."></textarea></td></tr>
+              <td class="semanal-col-0"><textarea id="s-r2c0" placeholder="Recursos..."></textarea></td>
+              <td class="semanal-col-1"><textarea id="s-r2c1" placeholder="Recursos..."></textarea></td>
+              <td class="semanal-col-2"><textarea id="s-r2c2" placeholder="Recursos..."></textarea></td>
+              <td class="semanal-col-3"><textarea id="s-r2c3" placeholder="Recursos..."></textarea></td>
+              <td class="semanal-col-4"><textarea id="s-r2c4" placeholder="Recursos..."></textarea></td></tr>
             <tr><td class="campo-label">OBSERVAÇÃO</td>
-              <td><textarea id="s-r3c0" placeholder="Observação..."></textarea></td>
-              <td><textarea id="s-r3c1" placeholder="Observação..."></textarea></td>
-              <td><textarea id="s-r3c2" placeholder="Observação..."></textarea></td>
-              <td><textarea id="s-r3c3" placeholder="Observação..."></textarea></td>
-              <td><textarea id="s-r3c4" placeholder="Observação..."></textarea></td></tr>
+              <td class="semanal-col-0"><textarea id="s-r3c0" placeholder="Observação..."></textarea></td>
+              <td class="semanal-col-1"><textarea id="s-r3c1" placeholder="Observação..."></textarea></td>
+              <td class="semanal-col-2"><textarea id="s-r3c2" placeholder="Observação..."></textarea></td>
+              <td class="semanal-col-3"><textarea id="s-r3c3" placeholder="Observação..."></textarea></td>
+              <td class="semanal-col-4"><textarea id="s-r3c4" placeholder="Observação..."></textarea></td></tr>
           </tbody>
         </table>
       </div>
@@ -1965,6 +2052,43 @@ function preencherSelects() {
 
   // [V8-1] Auto-preenche professor e filtra turmas/componentes após carregar perfil
   _aplicarFiltroPerfil();
+
+  // [MOBILE-TURMAS] Sincroniza chips de turma após preencher select
+  _sincronizarTurmasChips();
+}
+
+// [MOBILE-TURMAS] Renderiza botões de turma para mobile no lugar do select[multiple]
+function _sincronizarTurmasChips() {
+  const select = document.getElementById('s-turmas');
+  const chips  = document.getElementById('s-turmas-chips');
+  if (!select || !chips) return;
+  chips.innerHTML = '';
+  [...select.options].forEach(opt => {
+    if (!opt.value) return; // pula placeholder
+    const btn = document.createElement('button');
+    btn.type      = 'button';
+    btn.className = 'turma-chip-btn' + (opt.selected ? ' ativo' : '');
+    btn.textContent = opt.value;
+    btn.addEventListener('click', () => {
+      opt.selected = !opt.selected;
+      btn.classList.toggle('ativo', opt.selected);
+    });
+    chips.appendChild(btn);
+  });
+}
+
+// [MOBILE-SEMANAL] Ativa a coluna do dia selecionado na tabela semanal (mobile)
+function selecionarDiaSemanal(dia) {
+  // Remove classe ativa de todas as colunas
+  for (let i = 0; i < 5; i++) {
+    document.querySelectorAll('.semanal-col-' + i).forEach(el => el.classList.remove('semanal-col-ativa'));
+  }
+  // Ativa a coluna do dia selecionado
+  document.querySelectorAll('.semanal-col-' + dia).forEach(el => el.classList.add('semanal-col-ativa'));
+  // Atualiza abas
+  document.querySelectorAll('.semanal-day-tab').forEach(btn => {
+    btn.classList.toggle('ativo', Number(btn.dataset.dia) === dia);
+  });
 }
 
 // [V8-1] Retorna turmas disponíveis para o perfil atual
@@ -2048,11 +2172,12 @@ function _aplicarFiltroPerfil() {
         if (atuais.includes(t)) opt.selected = true;
         selTurmaS.appendChild(opt);
       });
+      _sincronizarTurmasChips(); // [MOBILE-TURMAS] re-renderiza chips após filtro de perfil
     }
   }
 }
 
-// Carrega cadastros do backend (Apps Script)
+// [PERF-INIT] Carrega cadastros + perfil em uma única chamada GAS (economiza 1 round trip)
 function carregarCadastros() {
   if (typeof google === 'undefined') {
     CADASTROS = {
@@ -2067,17 +2192,20 @@ function carregarCadastros() {
     return;
   }
   google.script.run
-    .withSuccessHandler(dados => {
-      if (dados) {
-        CADASTROS = dados;
+    .withSuccessHandler(data => {
+      if (!data) return;
+      if (data.cadastros) {
+        CADASTROS = data.cadastros;
         preencherSelects();
-        // [V8-1] Re-aplica filtro de perfil após cadastros chegarem
-        // (perfil pode ter chegado antes ou depois dos cadastros)
+      }
+      if (data.perfil) {
+        PERFIL_ATUAL = Object.freeze(data.perfil);
+        _aplicarPerfil();
         _aplicarFiltroPerfil();
       }
     })
     .withFailureHandler(() => {})
-    .getCadastros();
+    .getInitData(); // [PERF-INIT] Uma chamada no lugar de duas
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2107,6 +2235,8 @@ function restaurarTema() {
 let PERFIL_ATUAL = { nome: '', email: '', perfil: 'dev' };
 
 function carregarPerfil() {
+  // [PERF-INIT] Em produção, o perfil já vem junto com os cadastros via getInitData().
+  // Esta função é usada apenas em modo dev (sem google.script.run).
   if (typeof google === 'undefined') {
     PERFIL_ATUAL = Object.freeze({ // [A2] Congelar após carga — impede mutação via console
       nome: 'Professor Demo', email: 'demo@escola.edu.br', perfil: 'professor',
@@ -2116,14 +2246,7 @@ function carregarPerfil() {
     _aplicarFiltroPerfil(); // [V8-1]
     return;
   }
-  google.script.run
-    .withSuccessHandler(p => {
-      PERFIL_ATUAL = Object.freeze(p); // [A2] Congelar após carga do backend
-      _aplicarPerfil();
-      _aplicarFiltroPerfil(); // [V8-1] re-aplica filtros com dados do perfil
-    })
-    .withFailureHandler(() => {})
-    .getPerfil();
+  // Em produção: não faz nada — perfil já carregado por carregarCadastros() via getInitData()
 }
 
 // [V9-LOGOUT] Redireciona para a landing page via frame pai (_top)
@@ -4178,11 +4301,12 @@ function _setTimer(id, fn, ms) {
     restaurarRascunho('anual');
   }, 300);
 
-  // Carrega listas de cadastro
+  // [PERF-INIT] Carrega cadastros + perfil numa única chamada GAS
   carregarCadastros();
+  carregarPerfil(); // no-op em produção; inicializa modo dev
 
-  // [F2-4] Carrega perfil do usuário
-  carregarPerfil();
+  // [MOBILE-SEMANAL] Ativa a coluna Segunda-feira por padrão
+  selecionarDiaSemanal(0);
 
   // [F2-2] Pré-carrega calendário em background (silencioso — sem overlay) [B1]
   _setTimer('pre-carregar-cal', () => carregarCalendario(false, true), 1500);
