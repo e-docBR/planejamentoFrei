@@ -3,9 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planejamento Escolar — Colégio Itabatan</title>
+<title>Planejamento Escolar — Colégio Municipal de Itabatan</title>
+<meta name="description" content="Sistema digital de planejamento pedagógico do Colégio Municipal de Itabatan — Mucuri/BA. Planos trimestrais, semanais e anuais com aprovação online e geração de PDF com QR Code.">
+<meta property="og:title" content="Sistema de Planejamento Escolar — Colégio Itabatan">
+<meta property="og:description" content="Gerencie planejamentos pedagógicos de forma moderna, organizada e eficiente. Trimestral, Semanal e Anual — tudo em um só lugar.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1a3a6b">
+<!-- Fonts — não bloqueante -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet"></noscript>
 
 <style>
 /* ═══════════════════════════════════════════════
@@ -16,6 +25,7 @@
   --azul-m:  #2c5282;
   --azul-l:  #ebf0fa;
   --dourado: #c9a84c;
+  --dourado-l: rgba(201,168,76,.18);
   --verde:   #2d7a4f;
   --verde-l: #f0fdf4;
   --texto:   #1e293b;
@@ -36,68 +46,135 @@ body {
   min-height: 100vh;
 }
 
+/* ─── Foco acessível ─── */
+:focus-visible {
+  outline: 3px solid var(--dourado);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 /* ═══════════════════════════════════════════════
    HERO
 ═══════════════════════════════════════════════ */
 .hero {
-  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-m) 60%, #3a6ea8 100%);
-  padding: 56px 24px 48px;
+  background:
+    linear-gradient(160deg, #0f2547 0%, var(--azul) 45%, var(--azul-m) 80%, #3a6ea8 100%);
+  padding: 60px 24px 52px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
+/* Decoração sutil de fundo */
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 50%, rgba(201,168,76,.15) 0%, transparent 55%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,.06) 0%, transparent 45%);
+    radial-gradient(ellipse at 18% 60%, rgba(201,168,76,.16) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 15%, rgba(255,255,255,.07) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 110%, rgba(26,58,107,.5) 0%, transparent 55%);
   pointer-events: none;
 }
 
-.brasao {
-  width: 72px;
-  height: 72px;
-  background: rgba(255,255,255,.12);
-  border: 2px solid rgba(255,255,255,.25);
+/* Linhas diagonais sutis */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 24px,
+    rgba(255,255,255,.018) 24px,
+    rgba(255,255,255,.018) 25px
+  );
+  pointer-events: none;
+}
+
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Logo ─── */
+.logo-escola {
+  width: 116px;
+  height: 116px;
   border-radius: 50%;
+  border: 3px solid var(--dourado);
+  box-shadow:
+    0 0 0 6px rgba(201,168,76,.18),
+    0 10px 40px rgba(0,0,0,.38);
+  object-fit: contain;
+  background: rgba(255,255,255,.13);
+  padding: 8px;
+  margin-bottom: 22px;
+  display: block;
+}
+
+/* Fallback quando logo não carrega */
+.logo-escola-fallback {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  border: 3px solid var(--dourado);
+  box-shadow:
+    0 0 0 6px rgba(201,168,76,.18),
+    0 10px 40px rgba(0,0,0,.38);
+  background: rgba(255,255,255,.13);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.2rem;
-  margin: 0 auto 20px;
+  font-size: 3rem;
+  margin: 0 auto 22px;
+}
+
+.hero-escola-nome {
+  font-size: .78rem;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--dourado);
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-family: 'Source Sans 3', sans-serif;
 }
 
 .hero h1 {
   font-family: 'Merriweather', serif;
-  font-size: clamp(1.35rem, 3.5vw, 2rem);
+  font-size: clamp(1.4rem, 3.8vw, 2.1rem);
   color: #fff;
-  line-height: 1.35;
-  margin-bottom: 8px;
-  text-shadow: 0 2px 8px rgba(0,0,0,.18);
+  line-height: 1.3;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.22);
 }
 
 .hero .subtitulo {
   font-size: .95rem;
-  color: rgba(255,255,255,.72);
-  margin-bottom: 28px;
+  color: rgba(255,255,255,.68);
+  margin-bottom: 26px;
+  max-width: 480px;
 }
 
 .hero .ano-badge {
-  display: inline-block;
-  background: var(--dourado);
-  color: var(--azul);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--dourado);
+  border: 1.5px solid var(--dourado);
   font-weight: 700;
-  font-size: .88rem;
-  padding: 5px 18px;
+  font-size: .84rem;
+  padding: 5px 20px;
   border-radius: 20px;
-  letter-spacing: .04em;
-  margin-bottom: 32px;
+  letter-spacing: .06em;
+  margin-bottom: 36px;
 }
 
-/* Botão principal de acesso */
+/* ─── Botão principal de acesso ─── */
 .btn-acesso {
   display: inline-flex;
   align-items: center;
@@ -107,52 +184,49 @@ body {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 1.05rem;
   font-weight: 700;
-  padding: 14px 36px;
+  padding: 15px 40px;
   border-radius: 50px;
   text-decoration: none;
-  box-shadow: 0 6px 24px rgba(0,0,0,.22);
+  box-shadow: 0 6px 28px rgba(0,0,0,.26);
   transition: transform .18s, box-shadow .18s;
   cursor: pointer;
   border: none;
 }
 
 .btn-acesso:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 32px rgba(0,0,0,.28);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 36px rgba(0,0,0,.30);
 }
 
-.btn-acesso .icon {
-  font-size: 1.25rem;
-}
+.btn-acesso .icon { font-size: 1.2rem; }
 
-/* ═══════════════════════════════════════════════
-   NOTICE (Google login info)
-═══════════════════════════════════════════════ */
+/* ─── Notice (Google login info) ─── */
 .notice {
-  background: rgba(255,255,255,.10);
+  background: rgba(255,255,255,.09);
   border: 1px solid rgba(255,255,255,.18);
-  border-radius: 8px;
-  color: rgba(255,255,255,.82);
+  border-radius: 10px;
+  color: rgba(255,255,255,.78);
   font-size: .82rem;
-  padding: 10px 18px;
-  margin-top: 20px;
+  padding: 12px 20px;
+  margin-top: 22px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  max-width: 440px;
+  gap: 9px;
+  max-width: 460px;
   text-align: left;
+  line-height: 1.5;
 }
 
 /* ═══════════════════════════════════════════════
    CONTEÚDO PRINCIPAL
 ═══════════════════════════════════════════════ */
 .container {
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
-  padding: 48px 24px 64px;
+  padding: 56px 24px 72px;
 }
 
-/* ── Seção: Como funciona ── */
+/* ─── Títulos de seção ─── */
 .secao-titulo {
   font-family: 'Merriweather', serif;
   font-size: 1.35rem;
@@ -168,11 +242,14 @@ body {
   margin-bottom: 36px;
 }
 
+/* ═══════════════════════════════════════════════
+   CARDS — FUNCIONALIDADES
+═══════════════════════════════════════════════ */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
-  margin-bottom: 56px;
+  margin-bottom: 60px;
 }
 
 .card {
@@ -181,18 +258,26 @@ body {
   box-shadow: var(--shadow);
   padding: 28px 24px;
   border: 1px solid var(--borda);
+  border-top: 3px solid var(--azul);
   transition: box-shadow .2s, transform .2s;
 }
 
 .card:hover {
-  box-shadow: 0 8px 32px rgba(26,58,107,.14);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(26,58,107,.16);
+  transform: translateY(-3px);
 }
 
 .card-icon {
-  font-size: 2rem;
-  margin-bottom: 14px;
-  display: block;
+  width: 48px;
+  height: 48px;
+  background: var(--azul-l);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .card h3 {
@@ -208,52 +293,74 @@ body {
   line-height: 1.65;
 }
 
-/* ── Seção: Perfis ── */
+/* ═══════════════════════════════════════════════
+   CARDS — PERFIS DE ACESSO
+═══════════════════════════════════════════════ */
 .perfis-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin-bottom: 56px;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 24px;
+  margin-bottom: 60px;
 }
 
 .perfil-card {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 28px;
   border: 1px solid var(--borda);
   box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
-.perfil-card.coordenacao { border-top: 4px solid var(--azul); }
-.perfil-card.professor   { border-top: 4px solid var(--verde); }
+.perfil-header {
+  padding: 22px 28px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.perfil-card.professor  .perfil-header { background: var(--verde-l); border-bottom: 1px solid #d1fae5; }
+.perfil-card.coordenacao .perfil-header { background: var(--azul-l);  border-bottom: 1px solid #c3d7fa; }
+
+.perfil-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.perfil-info { flex: 1; }
 
 .perfil-badge {
   display: inline-block;
-  font-size: .75rem;
+  font-size: .73rem;
   font-weight: 700;
   padding: 3px 12px;
   border-radius: 12px;
-  margin-bottom: 14px;
-  letter-spacing: .04em;
+  letter-spacing: .05em;
   text-transform: uppercase;
+  margin-bottom: 4px;
 }
-.perfil-badge.coord { background: var(--azul-l); color: var(--azul); }
-.perfil-badge.prof  { background: var(--verde-l); color: var(--verde); }
+.perfil-badge.coord { background: rgba(26,58,107,.12); color: var(--azul); }
+.perfil-badge.prof  { background: rgba(45,122,79,.12);  color: var(--verde); }
 
-.perfil-card h3 { font-size: 1rem; color: var(--azul); margin-bottom: 12px; }
+.perfil-info h3 {
+  font-size: .98rem;
+  color: var(--texto);
+  font-weight: 700;
+}
+
+.perfil-body { padding: 20px 28px 26px; }
 
 .perfil-lista {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .perfil-lista li {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  font-size: .88rem;
+  gap: 9px;
+  font-size: .89rem;
   color: var(--texto-s);
   line-height: 1.5;
 }
@@ -266,31 +373,45 @@ body {
   margin-top: 1px;
 }
 
-/* ── Seção: CTA central ── */
+/* ═══════════════════════════════════════════════
+   CTA BOX
+═══════════════════════════════════════════════ */
 .cta-box {
-  background: linear-gradient(135deg, var(--azul) 0%, var(--azul-m) 100%);
+  background: linear-gradient(140deg, #0f2547 0%, var(--azul) 45%, var(--azul-m) 100%);
   border-radius: var(--radius);
-  padding: 44px 32px;
+  padding: 48px 36px;
   text-align: center;
   color: #fff;
-  margin-bottom: 48px;
-  box-shadow: 0 8px 32px rgba(26,58,107,.22);
+  margin-bottom: 56px;
+  box-shadow: 0 10px 40px rgba(26,58,107,.28);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 80% 20%, rgba(201,168,76,.14) 0%, transparent 55%);
+  pointer-events: none;
 }
 
 .cta-box h2 {
   font-family: 'Merriweather', serif;
-  font-size: 1.35rem;
-  margin-bottom: 10px;
+  font-size: 1.45rem;
+  margin-bottom: 12px;
+  position: relative;
 }
 
 .cta-box p {
-  color: rgba(255,255,255,.76);
-  font-size: .95rem;
-  margin-bottom: 28px;
+  color: rgba(255,255,255,.74);
+  font-size: .96rem;
+  margin-bottom: 30px;
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
-  line-height: 1.6;
+  line-height: 1.65;
+  position: relative;
 }
 
 .btn-acesso-cta {
@@ -298,24 +419,29 @@ body {
   align-items: center;
   gap: 10px;
   background: var(--dourado);
-  color: var(--azul);
+  color: #1a1a1a;
   font-family: 'Source Sans 3', sans-serif;
   font-size: 1.02rem;
   font-weight: 700;
-  padding: 14px 36px;
+  padding: 15px 40px;
   border-radius: 50px;
   text-decoration: none;
-  transition: filter .18s, transform .18s;
+  transition: filter .18s, transform .18s, box-shadow .18s;
   cursor: pointer;
   border: none;
+  box-shadow: 0 4px 18px rgba(201,168,76,.35);
+  position: relative;
 }
 
 .btn-acesso-cta:hover {
   filter: brightness(1.08);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(201,168,76,.45);
 }
 
-/* ── Seção: Contato / Ajuda ── */
+/* ═══════════════════════════════════════════════
+   AJUDA / FAQ
+═══════════════════════════════════════════════ */
 .ajuda-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -331,41 +457,33 @@ body {
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  transition: box-shadow .2s;
 }
 
+.ajuda-item:hover { box-shadow: var(--shadow); }
+
 .ajuda-item .ai {
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .ajuda-item h4 {
   font-size: .95rem;
   color: var(--azul);
-  margin-bottom: 4px;
+  margin-bottom: 5px;
+  font-weight: 700;
 }
 
 .ajuda-item p {
   font-size: .85rem;
   color: var(--texto-s);
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
-/* ── Rodapé ── */
-footer {
-  background: var(--azul);
-  padding: 28px 24px;
-  text-align: center;
-}
-
-footer p {
-  color: rgba(255,255,255,.6);
-  font-size: .82rem;
-  line-height: 1.7;
-}
-
-footer strong { color: rgba(255,255,255,.9); }
-
-/* ── Divisor ── */
+/* ═══════════════════════════════════════════════
+   DIVISOR
+═══════════════════════════════════════════════ */
 .divider {
   height: 1px;
   background: var(--borda);
@@ -373,13 +491,75 @@ footer strong { color: rgba(255,255,255,.9); }
 }
 
 /* ═══════════════════════════════════════════════
+   RODAPÉ
+═══════════════════════════════════════════════ */
+footer {
+  background: var(--azul);
+  padding: 36px 24px;
+}
+
+.footer-inner {
+  max-width: 920px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 40px;
+  align-items: start;
+}
+
+.footer-escola strong {
+  display: block;
+  color: #fff;
+  font-size: .95rem;
+  margin-bottom: 6px;
+}
+
+.footer-escola p, .footer-contato p {
+  color: rgba(255,255,255,.56);
+  font-size: .82rem;
+  line-height: 1.75;
+}
+
+.footer-contato {
+  text-align: right;
+}
+
+.footer-bottom {
+  max-width: 920px;
+  margin: 20px auto 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  text-align: center;
+}
+
+.footer-bottom p {
+  color: rgba(255,255,255,.38);
+  font-size: .78rem;
+}
+
+/* ═══════════════════════════════════════════════
    RESPONSIVO
 ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .footer-inner {
+    grid-template-columns: 1fr;
+  }
+  .footer-contato {
+    text-align: left;
+  }
+}
+
 @media (max-width: 600px) {
-  .hero { padding: 40px 20px 36px; }
-  .container { padding: 36px 18px 48px; }
+  .hero { padding: 44px 20px 40px; }
+  .hero-escola-nome { letter-spacing: 2px; font-size: .72rem; }
+  .container { padding: 40px 18px 52px; }
   .btn-acesso, .btn-acesso-cta { width: 100%; justify-content: center; }
-  .cta-box { padding: 32px 20px; }
+  .cta-box { padding: 36px 22px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .perfis-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -389,24 +569,39 @@ footer strong { color: rgba(255,255,255,.9); }
      HERO
 ══════════════════════════════════════════════ -->
 <header class="hero">
-  <div class="brasao">🏫</div>
-  <h1>Sistema de Planejamento Escolar</h1>
-  <p class="subtitulo">Colégio Municipal de 1º e 2º Graus de Itabatan &mdash; Mucuri/BA</p>
-  <div class="ano-badge" id="ano-badge">Ano Letivo ...</div>
+  <div class="hero-inner">
 
-  <br>
+    <? if (logoUrl) { ?>
+    <img
+      src="<?= logoUrl ?>"
+      alt="Logomarca do Colégio Municipal de Itabatan"
+      class="logo-escola"
+      width="116"
+      height="116"
+    >
+    <? } else { ?>
+    <div class="logo-escola-fallback" role="img" aria-label="Colégio Municipal de Itabatan">🏫</div>
+    <? } ?>
 
-  <a class="btn-acesso"
-     href="<?= appUrl ?>"
-     target="_top"
-     rel="noopener">
-    <span class="icon">📋</span>
-    Acessar o Sistema
-  </a>
+    <p class="hero-escola-nome">Colégio Municipal de Itabatan</p>
+    <h1>Sistema de Planejamento Escolar</h1>
+    <p class="subtitulo">Colégio Municipal de 1º e 2º Graus de Itabatan &mdash; Mucuri/BA</p>
+    <div class="ano-badge" id="ano-badge">📅 Ano Letivo ...</div>
 
-  <div class="notice">
-    🔐 O acesso é feito com a sua conta Google institucional.
-    Somente e-mails cadastrados pela coordenação têm permissão de entrada.
+    <a class="btn-acesso"
+       href="<?= appUrl ?>"
+       target="_top"
+       rel="noopener"
+       aria-label="Acessar o Sistema de Planejamento Escolar">
+      <span class="icon">📋</span>
+      Acessar o Sistema
+    </a>
+
+    <div class="notice" role="note">
+      🔐 O acesso é feito com a sua conta Google institucional.
+      Somente e-mails cadastrados pela coordenação têm permissão de entrada.
+    </div>
+
   </div>
 </header>
 
@@ -421,42 +616,42 @@ footer strong { color: rgba(255,255,255,.9); }
 
   <div class="cards-grid">
     <div class="card">
-      <span class="card-icon">📄</span>
+      <div class="card-icon" aria-hidden="true">📄</div>
       <h3>Planejamento Trimestral</h3>
       <p>Unidades temáticas, habilidades da BNCC, metodologia e avaliação — tudo em PDF pronto para assinar.</p>
     </div>
     <div class="card">
-      <span class="card-icon">🗓️</span>
+      <div class="card-icon" aria-hidden="true">🗓️</div>
       <h3>Planejamento Semanal</h3>
       <p>Grade semanal com campos para habilidade, estratégia, recursos e observação de cada dia da semana.</p>
     </div>
     <div class="card">
-      <span class="card-icon">📅</span>
+      <div class="card-icon" aria-hidden="true">📅</div>
       <h3>Planejamento Anual</h3>
       <p>Distribuição dos conteúdos por mês, com objetivo geral e competências da BNCC vinculadas.</p>
     </div>
     <div class="card">
-      <span class="card-icon">🔍</span>
+      <div class="card-icon" aria-hidden="true">🔍</div>
       <h3>Busca BNCC Integrada</h3>
       <p>Consulta em tempo real na API oficial do MEC. Digite o código ou palavra-chave e a habilidade aparece instantaneamente.</p>
     </div>
     <div class="card">
-      <span class="card-icon">📁</span>
+      <div class="card-icon" aria-hidden="true">📁</div>
       <h3>Pasta Pessoal no Drive</h3>
       <p>Cada professor tem uma pasta individual no Google Drive. Seus PDFs ficam separados e acessíveis somente por você e a coordenação.</p>
     </div>
     <div class="card">
-      <span class="card-icon">✅</span>
+      <div class="card-icon" aria-hidden="true">✅</div>
       <h3>QR Code de Autenticidade</h3>
       <p>Todo PDF gerado recebe um QR Code que permite verificar a autenticidade do documento a qualquer momento.</p>
     </div>
     <div class="card">
-      <span class="card-icon">📡</span>
+      <div class="card-icon" aria-hidden="true">📡</div>
       <h3>Modo Offline</h3>
       <p>Sem internet? O sistema salva o planejamento localmente e envia automaticamente quando a conexão voltar.</p>
     </div>
     <div class="card">
-      <span class="card-icon">📊</span>
+      <div class="card-icon" aria-hidden="true">📊</div>
       <h3>Painel da Coordenação</h3>
       <p>Gráficos, KPIs, tabela filtrável e botão de aprovação para acompanhar todas as entregas em tempo real.</p>
     </div>
@@ -470,30 +665,44 @@ footer strong { color: rgba(255,255,255,.9); }
 
   <div class="perfis-grid">
     <div class="perfil-card professor">
-      <span class="perfil-badge prof">Professor(a)</span>
-      <h3>O que você pode fazer</h3>
-      <ul class="perfil-lista">
-        <li>Preencher e salvar planos trimestrais, semanais e anuais</li>
-        <li>Visualizar e editar seus planejamentos anteriores</li>
-        <li>Buscar habilidades da BNCC direto do MEC</li>
-        <li>Acessar seu histórico completo e a pasta no Drive</li>
-        <li>Receber notificações de aprovação por e-mail</li>
-        <li>Ver o calendário escolar com feriados e eventos</li>
-        <li>Usar o modo offline quando sem internet</li>
-      </ul>
+      <div class="perfil-header">
+        <div class="perfil-icon" aria-hidden="true">👩‍🏫</div>
+        <div class="perfil-info">
+          <span class="perfil-badge prof">Professor(a)</span>
+          <h3>O que você pode fazer</h3>
+        </div>
+      </div>
+      <div class="perfil-body">
+        <ul class="perfil-lista">
+          <li>Preencher e salvar planos trimestrais, semanais e anuais</li>
+          <li>Visualizar e editar seus planejamentos anteriores</li>
+          <li>Buscar habilidades da BNCC direto do MEC</li>
+          <li>Acessar seu histórico completo e a pasta no Drive</li>
+          <li>Receber notificações de aprovação por e-mail</li>
+          <li>Ver o calendário escolar com feriados e eventos</li>
+          <li>Usar o modo offline quando sem internet</li>
+        </ul>
+      </div>
     </div>
     <div class="perfil-card coordenacao">
-      <span class="perfil-badge coord">Coordenação</span>
-      <h3>Acesso completo</h3>
-      <ul class="perfil-lista">
-        <li>Tudo que o professor faz, mais controle total</li>
-        <li>Painel com KPIs, gráficos e tabela de todos os registros</li>
-        <li>Aprovar ou solicitar revisão de planejamentos</li>
-        <li>Gerenciar professores, turmas, componentes e atribuições</li>
-        <li>Configurar dados da escola, pontuação e lembretes</li>
-        <li>Exportar painel em XLSX e gerar relatório de pendências</li>
-        <li>Acessar a pasta de qualquer professor no Drive</li>
-      </ul>
+      <div class="perfil-header">
+        <div class="perfil-icon" aria-hidden="true">🔑</div>
+        <div class="perfil-info">
+          <span class="perfil-badge coord">Coordenação</span>
+          <h3>Acesso completo</h3>
+        </div>
+      </div>
+      <div class="perfil-body">
+        <ul class="perfil-lista">
+          <li>Tudo que o professor faz, mais controle total</li>
+          <li>Painel com KPIs, gráficos e tabela de todos os registros</li>
+          <li>Aprovar ou solicitar revisão de planejamentos</li>
+          <li>Gerenciar professores, turmas, componentes e atribuições</li>
+          <li>Configurar dados da escola, pontuação e lembretes</li>
+          <li>Exportar painel em XLSX e gerar relatório de pendências</li>
+          <li>Acessar a pasta de qualquer professor no Drive</li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -506,8 +715,9 @@ footer strong { color: rgba(255,255,255,.9); }
     <a class="btn-acesso-cta"
        href="<?= appUrl ?>"
        target="_top"
-       rel="noopener">
-      <span>📋</span> Acessar o Sistema de Planejamento
+       rel="noopener"
+       aria-label="Acessar o Sistema de Planejamento Escolar">
+      <span aria-hidden="true">📋</span> Acessar o Sistema de Planejamento
     </a>
   </div>
 
@@ -517,28 +727,28 @@ footer strong { color: rgba(255,255,255,.9); }
 
   <div class="ajuda-grid">
     <div class="ajuda-item">
-      <div class="ai">🔒</div>
+      <div class="ai" aria-hidden="true">🔒</div>
       <div>
         <h4>"Acesso não autorizado"</h4>
         <p>Seu e-mail Google ainda não foi cadastrado. Fale com a coordenação pedagógica para solicitar o cadastro.</p>
       </div>
     </div>
     <div class="ajuda-item">
-      <div class="ai">📭</div>
+      <div class="ai" aria-hidden="true">📭</div>
       <div>
         <h4>Não recebo lembretes por e-mail</h4>
         <p>Confirme com a coordenação se o seu e-mail está correto no cadastro do sistema. Verifique também a pasta de spam.</p>
       </div>
     </div>
     <div class="ajuda-item">
-      <div class="ai">📡</div>
+      <div class="ai" aria-hidden="true">📡</div>
       <div>
         <h4>Sem internet no momento</h4>
         <p>Não tem problema. Preencha normalmente — o sistema detecta a ausência de conexão e salva localmente, enviando ao reconectar.</p>
       </div>
     </div>
     <div class="ajuda-item">
-      <div class="ai">❓</div>
+      <div class="ai" aria-hidden="true">❓</div>
       <div>
         <h4>Outro problema</h4>
         <p>Entre em contato com a coordenação pedagógica ou com o responsável pela tecnologia da Secretaria Municipal de Educação de Mucuri/BA.</p>
@@ -552,19 +762,38 @@ footer strong { color: rgba(255,255,255,.9); }
      RODAPÉ
 ══════════════════════════════════════════════ -->
 <footer>
-  <p>
-    <strong>Colégio Municipal de 1º e 2º Graus de Itabatan</strong><br>
-    Criação 062/94 · Av. Itapetinga, 305 – Gazzinelândia – Itabatan – Mucuri/BA · CEP 45.936-000<br>
-    Secretaria Municipal de Educação – Mucuri/BA &nbsp;|&nbsp; Sistema de Planejamento Escolar v9
-  </p>
+  <div class="footer-inner">
+    <div class="footer-escola">
+      <strong>Colégio Municipal de 1º e 2º Graus de Itabatan</strong>
+      <p>
+        Criação 062/94<br>
+        Av. Itapetinga, 305 – Gazzinelândia<br>
+        Itabatan, Mucuri — Bahia · CEP 45.936-000
+      </p>
+    </div>
+    <div class="footer-contato">
+      <p>
+        Secretaria Municipal de Educação<br>
+        Mucuri — Bahia<br>
+        Sistema de Planejamento Escolar v9
+      </p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; <span id="ano-rodape"></span> Colégio Municipal de Itabatan — Todos os direitos reservados</p>
+  </div>
 </footer>
 
 <script>
-// Ano letivo dinâmico
-document.getElementById('ano-badge').textContent = 'Ano Letivo ' + new Date().getFullYear();
-
-// URL injetada pelo servidor GAS via template (ScriptApp.getService().getUrl() + '?app=1')
-// window.location dentro do sandbox GAS aponta para googleusercontent.com, não o /exec
+(function() {
+  var ano = new Date().getFullYear();
+  // Badge no hero
+  var badge = document.getElementById('ano-badge');
+  if (badge) badge.textContent = '📅 Ano Letivo ' + ano;
+  // Rodapé
+  var rodape = document.getElementById('ano-rodape');
+  if (rodape) rodape.textContent = ano;
+})();
 </script>
 
 </body>

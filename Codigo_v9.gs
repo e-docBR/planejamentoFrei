@@ -165,6 +165,22 @@ function doGet(e) {
     if (!e || !e.parameter || !e.parameter.app) {
       const tpl = HtmlService.createTemplateFromFile('LandingPage_Sites');
       tpl.appUrl = ScriptApp.getService().getUrl() + '?app=1';
+      // [LOGO] URL pública do Drive (somente leitura do ID — sem alterar permissões aqui)
+      // Execute configurarLogoPublico() UMA VEZ no editor para tornar o arquivo público
+      try {
+        const _logoCache = CacheService.getScriptCache();
+        let _logoUrl = _logoCache.get('logo_url_v2');
+        if (!_logoUrl) {
+          const _logoIt = DriveApp.getFilesByName('LOGO FREI PNG.png');
+          if (_logoIt.hasNext()) {
+            // lh3.googleusercontent.com/d/ serve direto (sem redirect) — funciona no sandbox GAS
+            // drive.google.com/uc?export=view é bloqueado por redirect 302 no CSP
+            _logoUrl = 'https://lh3.googleusercontent.com/d/' + _logoIt.next().getId();
+            try { _logoCache.put('logo_url_v2', _logoUrl, 21600); } catch(e_) {}
+          }
+        }
+        tpl.logoUrl = _logoUrl || '';
+      } catch(e_) { tpl.logoUrl = ''; }
       return tpl.evaluate()
         .setTitle('Planejamento Escolar — Colégio Itabatan')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
@@ -2721,6 +2737,18 @@ function revogarAcessoProfessoresNaRaiz() {
   console.log('Professores mantêm acesso Editor somente em suas pastas individuais.');
 }
 
+/**
+ * [V11-SEC-2] Remove o link-sharing da pasta raiz, invalidando links antigos
+ * que foram compartilhados com professores em versões anteriores do sistema.
+ * Executar UMA vez manualmente pelo coordenador.
+ */
+function revogarLinksCompartilhamentoRaiz() {
+  const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
+  raiz.setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+  console.log('✓ Link-sharing da pasta raiz desativado. Links antigos não funcionam mais.');
+  console.log('Apenas usuários com acesso explícito por e-mail podem acessar a pasta raiz.');
+}
+
 function _salvarAtribuicoes(ss, atribuicoes) {
   let aba = ss.getSheetByName(ABA.TURMAS_PROFESSOR);
   if (!aba) {
@@ -3671,5 +3699,36 @@ function corrigirAcessosTodosProfessores() {
     console.log('Professores ainda têm acesso Editor em suas pastas individuais.');
   } catch(e) {
     console.log(`❌ Erro: ${e.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONFIGURAÇÃO DO LOGO (execute UMA VEZ no editor)
+// ═══════════════════════════════════════════════════════════
+/**
+ * Torna o arquivo "LOGO FREI PNG.png" acessível para qualquer pessoa com o link.
+ * Execute esta função UMA VEZ manualmente no editor do Apps Script (▶ Run).
+ * Após executar, a landing page exibirá o logo corretamente.
+ */
+function configurarLogoPublico() {
+  try {
+    const it = DriveApp.getFilesByName('LOGO FREI PNG.png');
+    if (!it.hasNext()) {
+      console.log('❌ Arquivo "LOGO FREI PNG.png" não encontrado no Drive.');
+      console.log('   Certifique-se de que o arquivo está na pasta do projeto.');
+      return;
+    }
+    const file = it.next();
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    // Invalida cache para forçar nova leitura
+    try { CacheService.getScriptCache().remove('logo_url_v2'); } catch(e_) {}
+    console.log('✅ Logo configurado como público!');
+    console.log('   Arquivo: ' + file.getName());
+    console.log('   ID: ' + file.getId());
+    console.log('   URL (embed): https://lh3.googleusercontent.com/d/' + file.getId());
+    console.log('');
+    console.log('Agora faça um novo deploy do Web App para atualizar a landing page.');
+  } catch(e) {
+    console.log('❌ Erro: ' + e.message);
   }
 }
