@@ -1990,6 +1990,7 @@ let CADASTROS = {
   componentes: [],
   turmas: []
 };
+let LOGO_URL = ''; // URL pública do logo Frei Ronaldo (carregado via getInitData)
 
 function preencherSelects() {
   const selProf  = ['t-professor','s-professor','a-professor','hist-professor'];
@@ -2161,7 +2162,7 @@ function _aplicarFiltroPerfil() {
       });
     });
 
-    // Turmas semanal (multi-select)
+    // Turmas semanal (multi-select) — preenche e auto-seleciona todas as turmas do professor
     const selTurmaS = document.getElementById('s-turmas');
     if (selTurmaS) {
       const atuais = [...selTurmaS.selectedOptions].map(o => o.value);
@@ -2169,10 +2170,20 @@ function _aplicarFiltroPerfil() {
       turmasProfessor.forEach(t => {
         const opt = document.createElement('option');
         opt.value = opt.textContent = t;
-        if (atuais.includes(t)) opt.selected = true;
+        // Auto-seleciona: mantém seleção anterior ou seleciona todas se não havia nenhuma
+        opt.selected = atuais.length > 0 ? atuais.includes(t) : true;
         selTurmaS.appendChild(opt);
       });
       _sincronizarTurmasChips(); // [MOBILE-TURMAS] re-renderiza chips após filtro de perfil
+    }
+
+    // Meu Histórico: professor só vê o próprio histórico — oculta seletor e carrega automaticamente
+    const histSel = document.getElementById('hist-professor');
+    if (histSel) {
+      histSel.style.display = 'none';
+      histSel.innerHTML = '<option value="' + PERFIL_ATUAL.nome + '" selected>' + PERFIL_ATUAL.nome + '</option>';
+      histSel.value = PERFIL_ATUAL.nome;
+      _setTimer('hist-auto', carregarHistorico, 600);
     }
   }
 }
@@ -2198,6 +2209,7 @@ function carregarCadastros() {
         CADASTROS = data.cadastros;
         preencherSelects();
       }
+      if (data.logoUrl) LOGO_URL = data.logoUrl;
       if (data.perfil) {
         PERFIL_ATUAL = Object.freeze(data.perfil);
         _aplicarPerfil();
@@ -2286,13 +2298,13 @@ function _aplicarPerfil() {
     });
   }
 
-  // [V7-6] Oculta TOTALMENTE o painel de coordenação e configurações para professores
+  // [V7-6] Oculta TOTALMENTE coordenação, configurações e estatísticas para professores
   if (ehProf) {
-    ['nav-coordenacao','nav-configuracoes'].forEach(id => {
+    ['nav-coordenacao','nav-configuracoes','nav-estatisticas'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
-    ['pagina-coordenacao','pagina-configuracoes'].forEach(id => {
+    ['pagina-coordenacao','pagina-configuracoes','pagina-estatisticas'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.remove(); // remove do DOM — não apenas esconde
     });
@@ -2895,7 +2907,8 @@ function previaTrimestral() {
   const d = coletarDadosTrimestral();
   _tipoPrevia = 'trimestral';
   const linhasHTML = (d.linhas||[]).map(l => '' + "\n" + '    <tr>' + "\n" + '      <td style="width:22%;background:#f7f9fc">' + (esc(l.unidade)) + '</td>' + "\n" + '      <td style="width:36%">' + (nl2br(esc(l.habilidades))) + '</td>' + "\n" + '      <td style="width:20%">' + (nl2br(esc(l.metodologia))) + '</td>' + "\n" + '      <td style="width:22%">' + (nl2br(esc(l.avaliacao))) + '</td>' + "\n" + '    </tr>').join('');
-  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Ano/Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ' + (esc(d.trimestre)) + ' TRIMESTRE 2026</div>' + "\n" + '    <table><thead><tr>' + "\n" + '      <th>UNIDADE TEMÁTICA / OBJETOS DE CONHECIMENTO</th>' + "\n" + '      <th>HABILIDADES</th><th>METODOLOGIA / RECURSOS</th><th>AVALIAÇÃO</th>' + "\n" + '    </tr></thead><tbody>' + (linhasHTML) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
+  const _logoTagT = LOGO_URL ? '<img src="' + LOGO_URL + '" style="height:55px;display:block;margin:0 auto 4px" alt="Logo">' : '';
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    ' + _logoTagT + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Ano/Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ' + (esc(d.trimestre)) + ' TRIMESTRE 2026</div>' + "\n" + '    <table><thead><tr>' + "\n" + '      <th>UNIDADE TEMÁTICA / OBJETOS DE CONHECIMENTO</th>' + "\n" + '      <th>HABILIDADES</th><th>METODOLOGIA / RECURSOS</th><th>AVALIAÇÃO</th>' + "\n" + '    </tr></thead><tbody>' + (linhasHTML) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
   document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarTrimestral(); };
   abrirPrevia();
 }
@@ -2909,9 +2922,10 @@ function previaSemanal() {
     .map((dia, i) => '<th>' + (dia) + '<br><small>' + (d.datas&&d.datas[i]?d.datas[i]:'') + '</small>').join('');
   const linhas = campos.map((campo, ci) => {
     const cols = [0,1,2,3,4].map(di => '<td>' + (nl2br(esc(d.semana&&d.semana[di]?d.semana[di][campo]:'' ))) + '</td>').join('');
-    return '<tr><th style="background:#2c5282;color:#fff;font-size:8pt;width:80px">' + (labels[ci]) + '</th>' + (cols) + '</tr>';
+    return '<tr><th style="background:#2c5282;color:#fff;font-size:8pt;width:110px;word-break:break-word;white-space:normal">' + (labels[ci]) + '</th>' + (cols) + '</tr>';
   }).join('');
-  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turmas:</strong> ' + (esc(d.turmas)) + '</span>' + "\n" + '      <span><strong>Mês:</strong> ' + (esc(d.mes)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO SEMANAL – ' + (esc(d.semanaInicio)) + ' até ' + (esc(d.semanaFim)) + '</div>' + "\n" + '    <table><thead><tr><th style="width:80px"></th>' + (headerDias) + '</tr></thead><tbody>' + (linhas) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do Professor</div>' + "\n" + '      <div class="ass">Assinatura do Coordenador Pedagógico</div>' + "\n" + '    </div>';
+  const _logoTagS = LOGO_URL ? '<img src="' + LOGO_URL + '" style="height:55px;display:block;margin:0 auto 4px" alt="Logo">' : '';
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    ' + _logoTagS + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turmas:</strong> ' + (esc(d.turmas)) + '</span>' + "\n" + '      <span><strong>Mês:</strong> ' + (esc(d.mes)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO SEMANAL – ' + (esc(d.semanaInicio)) + ' até ' + (esc(d.semanaFim)) + '</div>' + "\n" + '    <table><thead><tr><th style="width:110px"></th>' + (headerDias) + '</tr></thead><tbody>' + (linhas) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc">' + "\n" + '      <div class="ass">Assinatura do Professor</div>' + "\n" + '      <div class="ass">Assinatura do Coordenador Pedagógico</div>' + "\n" + '    </div>';
   document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarSemanal(); };
   abrirPrevia();
 }
@@ -2920,7 +2934,8 @@ function previaAnual() {
   const d = coletarDadosAnual();
   _tipoPrevia = 'anual';
   const linhasMeses = MESES.map((mes,i) => '<tr><td style="width:15%;background:#f7f9fc;font-weight:bold">' + (mes) + '</td><td>' + (nl2br(esc(d.meses[i]||''))) + '</td></tr>').join('');
-  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ANUAL ' + (ANO_ATUAL) + '</div>' + "\n" + '    ' + (d.objetivo?'<p style="margin-bottom:6px;font-size:9pt"><strong>Objetivo Geral:</strong> ' + (esc(d.objetivo)) + '</p>':'') + '' + "\n" + '    ' + (d.bncc?'<p style="margin-bottom:8px;font-size:9pt"><strong>Competências BNCC:</strong> ' + (esc(d.bncc)) + '</p>':'') + '' + "\n" + '    <table><thead><tr><th style="width:15%">Mês</th><th>Conteúdos / Unidades / Habilidades</th></tr></thead>' + "\n" + '    <tbody>' + (linhasMeses) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc" style="margin-top:24px">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
+  const _logoTagA = LOGO_URL ? '<img src="' + LOGO_URL + '" style="height:55px;display:block;margin:0 auto 4px" alt="Logo">' : '';
+  document.getElementById('previa-conteudo').innerHTML = '' + "\n" + '    ' + _logoTagA + "\n" + '    <div class="cab-escola">COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN</div>' + "\n" + '    <div class="cab-end">Criação 062/94 · Av. Itapetinga, 305 - Itabatan - Mucuri/BA · CEP 45.936-000</div>' + "\n" + '    <div class="linha-id">' + "\n" + '      <span><strong>Componente:</strong> ' + (esc(d.componente)) + '</span>' + "\n" + '      <span><strong>Professor(a):</strong> ' + (esc(d.professor)) + '</span>' + "\n" + '      <span><strong>Turma:</strong> ' + (esc(d.anoTurma)) + '</span>' + "\n" + '    </div>' + "\n" + '    <div class="titulo-doc">PLANEJAMENTO ANUAL ' + (ANO_ATUAL) + '</div>' + "\n" + '    ' + (d.objetivo?'<p style="margin-bottom:6px;font-size:9pt"><strong>Objetivo Geral:</strong> ' + (esc(d.objetivo)) + '</p>':'') + '' + "\n" + '    ' + (d.bncc?'<p style="margin-bottom:8px;font-size:9pt"><strong>Competências BNCC:</strong> ' + (esc(d.bncc)) + '</p>':'') + '' + "\n" + '    <table><thead><tr><th style="width:15%">Mês</th><th>Conteúdos / Unidades / Habilidades</th></tr></thead>' + "\n" + '    <tbody>' + (linhasMeses) + '</tbody></table>' + "\n" + '    ' + (d.obs ? '<p style="margin-top:10px;font-size:9pt"><strong>Observações:</strong> ' + (nl2br(esc(d.obs))) + '</p>' : '') + '' + "\n" + '    <div class="rodape-doc" style="margin-top:24px">' + "\n" + '      <div class="ass">Assinatura do(a) Professor(a)</div>' + "\n" + '      <div class="ass">Assinatura da Coordenadora Pedagógica</div>' + "\n" + '    </div>';
   document.getElementById('btn-confirmar-salvar').onclick = () => { fecharPrevia(); salvarAnual(); };
   abrirPrevia();
 }

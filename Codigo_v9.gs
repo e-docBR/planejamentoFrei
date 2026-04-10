@@ -537,17 +537,39 @@ function _atualizarUrlVerificacao(id, urlFinal) {
 function exportarParaDocs(payload) {
   try {
     const { tipo, dados } = payload;
-    // [V9-6] Usa a pasta individual do professor (subpasta Docs) em vez da pasta global
+    // Salva na mesma pasta do PDF do professor (Trimestral / Semanal / Anual)
+    const tipoKey = tipo === 'trimestral' ? 'T' : tipo === 'semanal' ? 'S' : 'A';
     let pasta;
     try {
-      pasta = _pastaDestino('Docs', dados.professor);
+      pasta = _pastaDestino(tipoKey, dados.professor);
     } catch(e2) {
-      // Fallback para pasta global se a individual não existir
-      pasta = subpasta(CONFIG.PASTA_ID, SP.DOCS);
+      // Fallback para pasta global correspondente se a individual não existir
+      const nomeFallback = { T: SP.TRIMESTRAL, S: SP.SEMANAL, A: SP.ANUAL }[tipoKey] || SP.DOCS;
+      pasta = subpasta(CONFIG.PASTA_ID, nomeFallback);
     }
     const nome  = nomearArquivo(tipo.charAt(0).toUpperCase(), dados) + "_EDITAVEL";
     const doc   = DocumentApp.create(nome);
     const body  = doc.getBody();
+
+    // Orientação paisagem A4 (297mm × 210mm, margens 15mm/12mm)
+    const PT = 72 / 25.4;
+    body.setPageWidth(Math.round(297 * PT));
+    body.setPageHeight(Math.round(210 * PT));
+    body.setMarginTop(Math.round(15 * PT));
+    body.setMarginBottom(Math.round(15 * PT));
+    body.setMarginLeft(Math.round(12 * PT));
+    body.setMarginRight(Math.round(12 * PT));
+
+    // Logo Frei Ronaldo no topo do documento
+    try {
+      const logoIt = DriveApp.getFilesByName('LOGO FREI PNG.png');
+      if (logoIt.hasNext()) {
+        const blob = logoIt.next().getBlob();
+        const img  = body.appendImage(blob);
+        img.setWidth(70).setHeight(70);
+        img.getParent().asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      }
+    } catch(e_) { /* logo não encontrado, continua sem ele */ }
 
     const hdr = body.appendParagraph("COLÉGIO MUNICIPAL DE 1º E 2º GRAUS DE ITABATAN");
     hdr.setHeading(DocumentApp.ParagraphHeading.HEADING1).setAlignment(DocumentApp.HorizontalAlignment.CENTER);
@@ -1067,8 +1089,15 @@ function _gerarRegistroVerificacao(tipo, dados, urlPDF) {
     const urlBase  = ScriptApp.getService().getUrl();
     const urlVerif = `${urlBase}?verificar=${id}`;
 
-    // QR Code via Google Charts API (gratuita, sem autenticação)
-    const qrSrc = `https://chart.googleapis.com/chart?chs=80x80&cht=qr&chl=${encodeURIComponent(urlVerif)}&choe=UTF-8`;
+    // QR Code via Google Charts API — convertido para base64 para embutir no PDF
+    const qrUrl = `https://chart.googleapis.com/chart?chs=80x80&cht=qr&chl=${encodeURIComponent(urlVerif)}&choe=UTF-8`;
+    let qrSrc = qrUrl;
+    try {
+      const resp = UrlFetchApp.fetch(qrUrl, { muteHttpExceptions: true });
+      if (resp.getResponseCode() === 200) {
+        qrSrc = 'data:image/png;base64,' + Utilities.base64Encode(resp.getContent());
+      }
+    } catch(e_) {}
 
     return { id, urlVerif, qrSrc };
   } catch(e) {
@@ -1247,7 +1276,19 @@ function _cab() {
   const criacao = _cfg('escola_criacao', 'Criação 062/94 - Aut. CEE 236/95 DO 25/01/1996');
   const end     = _cfg('escola_endereco','Av. Itapetinga, 305 - Gazzinelândia - Itabatan - Mucuri / BA');
   const cep     = _cfg('escola_cep',     '45.936-000');
+  // Para PDF: imagem embutida como base64 para que o conversor do Drive consiga renderizar
+  let logoHtml = '';
+  try {
+    const it = DriveApp.getFilesByName('LOGO FREI PNG.png');
+    if (it.hasNext()) {
+      const blob = it.next().getBlob();
+      const b64  = Utilities.base64Encode(blob.getBytes());
+      const mime = blob.getContentType() || 'image/png';
+      logoHtml = `<img src="data:${mime};base64,${b64}" style="height:55px;display:block;margin:0 auto 4px" alt="Logo">`;
+    }
+  } catch(e_) {}
   return `<div class="cab">
+    ${logoHtml}
     <strong>${esc(nome)}</strong>
     <small>${esc(criacao)}</small><br>
     <small>${esc(end)} — CEP.: ${esc(cep)}</small>
@@ -1323,7 +1364,7 @@ function htmlSemanal(d, verif) {
     const cols = [0,1,2,3,4].map(di =>
       `<td>${nl2br(esc(d.semana&&d.semana[di] ? d.semana[di][campo]||'' : ''))}</td>`
     ).join('');
-    return `<tr><th style="background:#2c5282;font-size:8pt;width:80px">${labC[ci]}</th>${cols}</tr>`;
+    return `<tr><th style="background:#2c5282;font-size:8pt;width:110px;word-break:break-word;white-space:normal">${labC[ci]}</th>${cols}</tr>`;
   }).join('');
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${CSS_BASE}</style></head><body>
@@ -1335,7 +1376,7 @@ function htmlSemanal(d, verif) {
     <span><strong>Mês:</strong> ${esc(d.mes)}</span>
   </div>
   <div class="tit">PLANEJAMENTO SEMANAL – INÍCIO: ${esc(d.semanaInicio)} | TÉRMINO: ${esc(d.semanaFim)}</div>
-  <table><thead><tr><th style="width:80px"></th>${hdrDias}</tr></thead><tbody>${linhas}</tbody></table>
+  <table><thead><tr><th style="width:110px"></th>${hdrDias}</tr></thead><tbody>${linhas}</tbody></table>
   ${d.obs ? `<div class="obs"><strong>Observações:</strong> ${nl2br(esc(d.obs))}</div>` : ''}
   ${_rodapeComQR(verif)}
   </body></html>`;
@@ -1605,9 +1646,21 @@ function getPerfil() {
   }
 }
 
-// [PERF-INIT] Retorna cadastros + perfil em uma única chamada GAS — economiza 1 round trip no carregamento
+// [PERF-INIT] Retorna cadastros + perfil + logoUrl em uma única chamada GAS
 function getInitData() {
-  return { cadastros: getCadastros(), perfil: getPerfil() };
+  let logoUrl = '';
+  try {
+    const lc = CacheService.getScriptCache();
+    logoUrl = lc.get('logo_url_v2') || '';
+    if (!logoUrl) {
+      const it = DriveApp.getFilesByName('LOGO FREI PNG.png');
+      if (it.hasNext()) {
+        logoUrl = 'https://lh3.googleusercontent.com/d/' + it.next().getId();
+        try { lc.put('logo_url_v2', logoUrl, 21600); } catch(e_) {}
+      }
+    }
+  } catch(e_) {}
+  return { cadastros: getCadastros(), perfil: getPerfil(), logoUrl };
 }
 
 /**
