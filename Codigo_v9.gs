@@ -2643,6 +2643,34 @@ function _getAtribuicoesProfessor(nomeProfessor) {
   }
 }
 
+/**
+ * Retorna todas as atribuições professor × componente agrupadas,
+ * com array de turmas para cada combinação.
+ * Usado pelo painel de configurações para carregar a aba Atribuições.
+ */
+function getAtribuicoes() {
+  _verificarPermissao('getAtribuicoes');
+  try {
+    const ss  = abrirPlanilha();
+    const aba = ss.getSheetByName(ABA.TURMAS_PROFESSOR);
+    if (!aba || aba.getLastRow() < 2) return [];
+    const mapa = {};
+    aba.getDataRange().getValues().slice(1).forEach(row => {
+      const prof  = String(row[0] || '').trim();
+      const comp  = String(row[1] || '').trim();
+      const turma = String(row[2] || '').trim();
+      if (!prof || !comp || !turma) return;
+      const key = prof + '||' + comp;
+      if (!mapa[key]) mapa[key] = { professor: prof, componente: comp, turmas: [] };
+      if (!mapa[key].turmas.includes(turma)) mapa[key].turmas.push(turma);
+    });
+    return Object.values(mapa);
+  } catch(e) {
+    log('ERRO', 'getAtribuicoes', e.message);
+    return [];
+  }
+}
+
 // ═══════════════════════════════════════════════════════════
 //  [V8-2] CONFIGURAÇÕES DO SISTEMA
 // ═══════════════════════════════════════════════════════════

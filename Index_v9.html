@@ -840,9 +840,12 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
 .chip button { background: none; border: none; color: var(--azul); cursor: pointer; font-size: .9rem; padding: 0 2px; line-height: 1; opacity: .7; }
 .chip button:hover { opacity: 1; color: var(--vermelho); }
 .chip-input { border: none; outline: none; font-size: .88rem; color: var(--texto); background: transparent; min-width: 140px; flex: 1; }
-.atrib-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
-.btn-remove-atrib { background: none; border: 1px solid var(--borda); color: var(--vermelho); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: .82rem; transition: var(--t); }
+.atrib-grid { display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 8px; align-items: start; margin-bottom: 10px; }
+.btn-remove-atrib { background: none; border: 1px solid var(--borda); color: var(--vermelho); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: .82rem; transition: var(--t); margin-top: 2px; }
 .btn-remove-atrib:hover { background: #fee2e2; }
+.turma-checks { border: 1px solid var(--borda); border-radius: 6px; padding: 6px 10px; max-height: 88px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 2px 12px; background: var(--fundo); align-content: flex-start; }
+.turma-check-label { display: flex; align-items: center; gap: 4px; font-size: .8rem; cursor: pointer; white-space: nowrap; color: var(--texto); }
+.turma-check-label input { accent-color: var(--azul); cursor: pointer; }
 .bncc-fonte-badge { font-size: .68rem; padding: 1px 6px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
 .bncc-fonte-badge.api  { background: #dcfce7; color: #166534; }
 .bncc-fonte-badge.local { background: #dbeafe; color: #1e40af; }
@@ -1779,12 +1782,12 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <div class="form-subtitulo" style="margin-bottom:16px;border:none;padding:0">
         <span>Define quais turmas e componentes cada professor pode acessar. O professor só verá os registros atribuídos a ele.</span>
       </div>
-      <div class="section-label">📋 Atribuições professor × componente × turma</div>
+      <div class="section-label">📋 Atribuições professor × componente × turmas</div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:8px;margin-bottom:10px">
         <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Professor</strong>
         <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Componente</strong>
-        <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Turma</strong>
+        <strong style="font-size:.78rem;color:var(--texto-s);padding:0 4px">Turmas (marque uma ou mais)</strong>
         <span></span>
       </div>
       <div id="atrib-linhas"></div>
@@ -3806,7 +3809,7 @@ function _mostrarQR(prefixo, urlVerif) {
 let _cfgAtual   = {};   // configurações carregadas do backend
 let _chipsData  = { professores: [], componentes: [], turmas: [] };
 let _emailsMap  = {};   // { nomeProfessor: email }
-let _atribData  = [];   // [{ professor, componente, turma }]
+let _atribData  = [];   // [{ professor, componente, turmas: [] }]
 
 // Alterna aba de configurações
 function cfg_aba(id) {
@@ -4037,14 +4040,18 @@ function salvarCfgProfessores() {
 
 // ─── Aba Atribuições ────────────────────────────────────
 function _carregarAtribuicoes() {
-  // Monta atribuições a partir dos selects de professores/componentes/turmas
-  // já existentes na aba TurmasProfessor (via getCadastros não as traz, precisaria de rota própria)
-  // Por ora inicializa vazio — o usuário adiciona manualmente
-  _renderizarAtribuicoes();
+  if (typeof google === 'undefined') { _renderizarAtribuicoes(); return; }
+  google.script.run
+    .withSuccessHandler(data => {
+      _atribData = (data || []).map(a => ({ professor: a.professor, componente: a.componente, turmas: a.turmas || [] }));
+      _renderizarAtribuicoes();
+    })
+    .withFailureHandler(() => _renderizarAtribuicoes())
+    .getAtribuicoes();
 }
 
 function adicionarLinhaAtrib() {
-  _atribData.push({ professor: '', componente: '', turma: '' });
+  _atribData.push({ professor: '', componente: '', turmas: [] });
   _renderizarAtribuicoes();
 }
 
@@ -4052,44 +4059,51 @@ function _renderizarAtribuicoes() {
   const cont = document.getElementById('atrib-linhas');
   if (!cont) return;
 
-  const profOpts  = (_chipsData.professores || CADASTROS.professores || [])
-    .map(p => '<option value="' + (esc(p)) + '">' + (esc(p)) + '</option>').join('');
-  const compOpts  = (_chipsData.componentes || CADASTROS.componentes || [])
-    .map(c => '<option value="' + (esc(c)) + '">' + (esc(c)) + '</option>').join('');
-  const turmaOpts = (_chipsData.turmas || CADASTROS.turmas || [])
-    .map(t => '<option value="' + (esc(t)) + '">' + (esc(t)) + '</option>').join('');
+  const turmas = _chipsData.turmas || CADASTROS.turmas || [];
+  const profs  = _chipsData.professores || CADASTROS.professores || [];
+  const comps  = _chipsData.componentes || CADASTROS.componentes || [];
+  const profOpts = profs.map(p => '<option value="' + esc(p) + '">' + esc(p) + '</option>').join('');
+  const compOpts = comps.map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join('');
 
-  cont.innerHTML = _atribData.map((a, i) => '' + "\n" + '    <div class="atrib-grid" id="atrib-' + (i) + '" data-atrib-index="' + (i) + '">' + "\n" + '      <select data-field="professor">' + "\n" + '        <option value="">— professor —</option>' + (profOpts) + '' + "\n" + '      </select>' + "\n" + '      <select data-field="componente">' + "\n" + '        <option value="">— componente —</option>' + (compOpts) + '' + "\n" + '      </select>' + "\n" + '      <select data-field="turma">' + "\n" + '        <option value="">— turma —</option>' + (turmaOpts) + '' + "\n" + '      </select>' + "\n" + '      <button class="btn-remove-atrib" data-index="' + (i) + '">✕</button>' + "\n" + '    </div>').join('');
+  cont.innerHTML = _atribData.map((a, i) => {
+    const checks = turmas.length
+      ? turmas.map(t => {
+          const chk = (a.turmas || []).includes(t) ? ' checked' : '';
+          return '<label class="turma-check-label"><input type="checkbox" value="' + esc(t) + '"' + chk + '> ' + esc(t) + '</label>';
+        }).join('')
+      : '<span style="color:var(--texto-s);font-size:.8rem">Nenhuma turma cadastrada</span>';
+    return '<div class="atrib-grid" id="atrib-' + i + '">'
+      + '<select data-field="professor"><option value="">— professor —</option>' + profOpts + '</select>'
+      + '<select data-field="componente"><option value="">— componente —</option>' + compOpts + '</select>'
+      + '<div class="turma-checks" data-field="turmas">' + checks + '</div>'
+      + '<button class="btn-remove-atrib" data-index="' + i + '">✕</button>'
+      + '</div>';
+  }).join('');
 
-  // Restaura valores selecionados e adiciona event listeners
+  // Restaura valores e adiciona event listeners
   _atribData.forEach((a, i) => {
     const row = document.getElementById('atrib-' + i);
     if (!row) return;
-    const sels = row.querySelectorAll('select');
-    if (sels[0]) {
-      sels[0].value = a.professor || '';
-      sels[0].addEventListener('change', function() {
-        _atribData[i].professor = this.value;
+    const selP = row.querySelector('select[data-field="professor"]');
+    const selC = row.querySelector('select[data-field="componente"]');
+    const divT = row.querySelector('[data-field="turmas"]');
+    if (selP) {
+      selP.value = a.professor || '';
+      selP.addEventListener('change', function() { _atribData[i].professor = this.value; });
+    }
+    if (selC) {
+      selC.value = a.componente || '';
+      selC.addEventListener('change', function() { _atribData[i].componente = this.value; });
+    }
+    if (divT) {
+      divT.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          _atribData[i].turmas = Array.from(divT.querySelectorAll('input:checked')).map(function(c) { return c.value; });
+        });
       });
     }
-    if (sels[1]) {
-      sels[1].value = a.componente || '';
-      sels[1].addEventListener('change', function() {
-        _atribData[i].componente = this.value;
-      });
-    }
-    if (sels[2]) {
-      sels[2].value = a.turma || '';
-      sels[2].addEventListener('change', function() {
-        _atribData[i].turma = this.value;
-      });
-    }
-    const btnRemove = row.querySelector('.btn-remove-atrib');
-    if (btnRemove) {
-      btnRemove.addEventListener('click', function() {
-        _removerAtrib(parseInt(this.dataset.index));
-      });
-    }
+    const btn = row.querySelector('.btn-remove-atrib');
+    if (btn) btn.addEventListener('click', function() { _removerAtrib(parseInt(this.dataset.index)); });
   });
 }
 
@@ -4099,26 +4113,33 @@ function _removerAtrib(idx) {
 }
 
 function salvarCfgAtribuicoes() {
-  const validas = _atribData.filter(a => a.professor && a.componente && a.turma);
-  if (validas.length === 0) { toast('Adicione ao menos uma atribuição válida.', 'aviso'); return; }
+  // Expande cada linha em triplets {professor, componente, turma} para o backend
+  const triplets = [];
+  _atribData.forEach(function(a) {
+    if (!a.professor || !a.componente) return;
+    (a.turmas || []).filter(Boolean).forEach(function(turma) {
+      triplets.push({ professor: a.professor, componente: a.componente, turma: turma });
+    });
+  });
+  if (triplets.length === 0) { toast('Selecione professor, componente e ao menos uma turma.', 'aviso'); return; }
 
   const payload = {
     professores: _chipsData.professores || CADASTROS.professores,
     componentes: _chipsData.componentes || CADASTROS.componentes,
     turmas:      _chipsData.turmas      || CADASTROS.turmas,
     emails:      _emailsMap,
-    atribuicoes: validas,
+    atribuicoes: triplets,
   };
 
-  if (typeof google === 'undefined') { toast((validas.length) + ' atribuição(ões) salva(s)! (dev)', 'sucesso'); return; }
+  if (typeof google === 'undefined') { toast(triplets.length + ' atribuição(ões) salva(s)! (dev)', 'sucesso'); return; }
   mostrarOverlay('Salvando atribuições…');
   google.script.run
-    .withSuccessHandler(r => {
+    .withSuccessHandler(function(r) {
       esconderOverlay();
-      if (r && r.sucesso) toast((validas.length) + ' atribuição(ões) salva(s)!', 'sucesso');
+      if (r && r.sucesso) toast(triplets.length + ' atribuição(ões) salva(s)!', 'sucesso');
       else toast('Erro: ' + (r && r.erro), 'erro');
     })
-    .withFailureHandler(e => { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
+    .withFailureHandler(function(e) { esconderOverlay(); toast('Erro: ' + e.message, 'erro'); })
     .salvarCadastros(payload);
 }
 
