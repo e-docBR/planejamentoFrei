@@ -939,7 +939,7 @@ function gerarRelatorioPendencias() {
     aba.appendRow(["Professor(a)", "Status", "E-mail"]);
     aba.getRange(1,1,1,3).setFontWeight("bold").setBackground("#c0392b").setFontColor("white");
     pendentes.forEach(p => aba.appendRow([p, "⚠️ Sem planejamento entregue", cadastros.emails[p] || '']));
-    aba.appendRow([]);
+    aba.appendRow(['']);
     aba.appendRow([`Gerado em: ${ts('dd/MM/yyyy HH:mm')} | Total pendente: ${pendentes.length} de ${cadastros.professores.length}`]);
     aba.autoResizeColumns(1, 3);
 
@@ -1006,7 +1006,7 @@ function gerarRelatorioMensalProfessor(payload) {
 
     aba.appendRow([`Relatório de Planejamentos — ${professor}`]);
     aba.appendRow([`Período: ${mesesNome[parseInt(mes,10)]} de ${ano} | Gerado em: ${ts('dd/MM/yyyy HH:mm')}`]);
-    aba.appendRow([]);
+    aba.appendRow(['']);
     aba.appendRow(['Tipo','Data','Componente','Turma/Ano','Período','Link PDF']);
     aba.getRange(4, 1, 1, 6).setFontWeight('bold').setBackground('#1a3a6b').setFontColor('white');
     aba.getRange(1, 1).setFontSize(13).setFontWeight('bold');
@@ -1016,7 +1016,7 @@ function gerarRelatorioMensalProfessor(payload) {
     } else {
       linhas.forEach(l => aba.appendRow([l.tipo, l.data, l.componente, l.turma, l.periodo, l.url]));
     }
-    aba.appendRow([]);
+    aba.appendRow(['']);
     aba.appendRow([`Total de planejamentos: ${linhas.length}`]);
     aba.autoResizeColumns(1, 6);
 
