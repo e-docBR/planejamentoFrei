@@ -1664,6 +1664,21 @@ function getInitData() {
 }
 
 /**
+ * Retorna a URL da pasta "Professores" no Drive (acesso coordenação).
+ */
+function getPastaProfessoresUrl() {
+  _verificarPermissao('getPastaProfessoresUrl');
+  try {
+    const raiz = DriveApp.getFolderById(CONFIG.PASTA_ID);
+    const pasta = subpasta(raiz.getId(), 'Professores');
+    return pasta.getUrl();
+  } catch(e) {
+    log('ERRO', 'getPastaProfessoresUrl', e.message);
+    return null;
+  }
+}
+
+/**
  * [V7-1..V7-3] Cria (ou recupera) a pasta individual do professor no Drive.
  * Estrutura: PASTA_RAIZ/Professores/NomeProfessor/Trimestral | Semanal | Anual | Docs
  * Permissão: professor (Editor) + coordenação (Editor) — somente eles.

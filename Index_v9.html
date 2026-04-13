@@ -1114,6 +1114,7 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
     <button class="nav-btn"       onclick="mostrarPagina('calendario')"  id="nav-calendario">📅 Calendário</button>
     <button class="nav-btn"       onclick="mostrarPagina('historico')"   id="nav-historico">📂 Meu Histórico</button>
     <button class="nav-btn"       onclick="mostrarPagina('estatisticas')" id="nav-estatisticas">📈 Estatísticas</button>
+    <button class="nav-btn coord-only" onclick="abrirPastaProfessores()"     id="nav-professores">📁 Professores</button>
     <button class="nav-btn coord-only" onclick="mostrarPagina('coordenacao')" id="nav-coordenacao">📊 Coordenação</button>
     <button class="nav-btn coord-only" onclick="mostrarPagina('configuracoes')" id="nav-configuracoes">⚙️ Configurações</button>
   </div>
@@ -1167,6 +1168,12 @@ main { max-width: 1180px; margin: 28px auto; padding: 0 24px 60px; }
       <h2>Relatório Mensal</h2>
       <p>Gere uma planilha com todos os planejamentos entregues em um mês.</p>
       <button class="btn-card">Gerar relatório</button>
+    </div>
+    <div class="menu-card coord-only" id="card-professores" onclick="abrirPastaProfessores()">
+      <div class="card-icon">📁</div>
+      <h2>Pasta Professores</h2>
+      <p>Acesse a pasta no Drive com todos os arquivos dos professores.</p>
+      <button class="btn-card">Abrir no Drive</button>
     </div>
   </div>
 </div>
@@ -2303,11 +2310,11 @@ function _aplicarPerfil() {
 
   // [V7-6] Oculta TOTALMENTE coordenação, configurações e estatísticas para professores
   if (ehProf) {
-    ['nav-coordenacao','nav-configuracoes','nav-estatisticas'].forEach(id => {
+    ['nav-coordenacao','nav-configuracoes','nav-estatisticas','nav-professores'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
-    ['pagina-coordenacao','pagina-configuracoes','pagina-estatisticas'].forEach(id => {
+    ['pagina-coordenacao','pagina-configuracoes','pagina-estatisticas','card-professores'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.remove(); // remove do DOM — não apenas esconde
     });
@@ -3209,6 +3216,23 @@ function abrirModalAprovacao(tipo, professor, componente, periodo, url) {
 function fecharModalAprovacao() {
   document.getElementById('modal-aprovacao').classList.remove('aberto');
   _aprovacaoPayload = {};
+}
+
+// Abre a pasta "Professores" no Drive (coordenação)
+function abrirPastaProfessores() {
+  if (typeof google === 'undefined') { toast('Função disponível apenas no ambiente Google.', 'aviso'); return; }
+  mostrarOverlay('Abrindo pasta Professores…');
+  google.script.run
+    .withSuccessHandler(function(url) {
+      esconderOverlay();
+      if (url) window.open(url, '_blank');
+      else toast('Não foi possível obter a URL da pasta.', 'erro');
+    })
+    .withFailureHandler(function(e) {
+      esconderOverlay();
+      toast('Erro: ' + e.message, 'erro');
+    })
+    .getPastaProfessoresUrl();
 }
 
 // [V10-D4] Modal de relatório mensal
